@@ -1,39 +1,201 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
-/* ===== Custom Theme ===== */
+/* ===== Custom Theme — Buraq School Color Palette ===== */
 @theme {
-  --color-primary: #1e3a5f;
-  --color-primary-light: #2a5a8f;
-  --color-primary-dark: #142840;
-  --color-secondary: #f59e0b;
-  --color-secondary-light: #fbbf24;
-  --color-secondary-dark: #d97706;
-  --color-accent: #10b981;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-text-primary: #1e293b;
-  --color-text-secondary: #64748b;
-  --color-text-muted: #94a3b8;
-  --color-border: #e2e8f0;
-  --color-error: #ef4444;
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-info: #3b82f6;
+  /* Primary: Navy Blue from logo */
+  --color-primary: #1B1F71;
+  --color-primary-light: #2A2F8A;
+  --color-primary-dark: #12155A;
+  --color-primary-50: #ECEDF8;
+  --color-primary-100: #C5C7E8;
 
+  /* Secondary: Red from logo */
+  --color-secondary: #E31E24;
+  --color-secondary-light: #FF3B3F;
+  --color-secondary-dark: #C41418;
+
+  /* Accent: Gold for premium feel */
+  --color-accent: #D4A843;
+  --color-accent-light: #E8C76A;
+  --color-accent-dark: #B8922E;
+
+  /* Neutrals */
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #1E293B;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-text-light: #CBD5E1;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
+
+  /* Feedback */
+  --color-error: #EF4444;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+
+  /* Fonts */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Poppins", system-ui, sans-serif;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.6s ease-out forwards;
+  --animate-slide-up: slide-up 0.6s ease-out forwards;
+  --animate-slide-down: slide-down 0.5s ease-out forwards;
+  --animate-slide-left: slide-left 0.6s ease-out forwards;
+  --animate-slide-right: slide-right 0.6s ease-out forwards;
+  --animate-scale-in: scale-in 0.5s ease-out forwards;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-marquee-reverse: marquee-reverse 30s linear infinite;
+}
+
+/* Typewriter animation for hero red text */
+@keyframes typewriter-reveal {
+  from { max-width: 0; }
+  to { max-width: 100%; }
+}
+
+@keyframes cursor-lifecycle {
+  0%, 20% { border-right-color: currentColor; }
+  10% { border-right-color: transparent; }
+  30% { border-right-color: transparent; }
+  40% { border-right-color: currentColor; }
+  50% { border-right-color: transparent; }
+  60% { border-right-color: currentColor; }
+  70% { border-right-color: transparent; }
+  80% { border-right-color: currentColor; }
+  85%, 100% { border-right-color: transparent; }
+}
+
+.hero-typewriter {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: fit-content;
+  max-width: 0;
+  border-right: 3px solid transparent;
+  animation:
+    typewriter-reveal 1.8s ease-out 0.4s forwards,
+    cursor-lifecycle 2s linear 0.2s forwards;
+}
+
+/* ===== Keyframes ===== */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
 }
 
 /* ===== Global Styles ===== */
+* {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-text-primary);
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* ===== Glassmorphism Utility ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-dark {
+  background: rgba(27, 31, 113, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-white {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* ===== Section Reveal Animation ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-light);
 }

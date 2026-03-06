@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 /**
- * Login — authentication page for the web portal.
- * Placeholder form; will be connected to backend in a future iteration.
+ * Login — premium authentication page for the web portal.
  */
 export default function Login() {
     const navigate = useNavigate();
@@ -12,9 +12,11 @@ export default function Login() {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        if (error) setError('');
     };
 
     const handleSubmit = async (e) => {
@@ -33,52 +35,146 @@ export default function Login() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-5">
-            <h2 className="text-center text-xl font-bold text-text-primary">Sign In</h2>
+        <div>
+            {/* Heading */}
+            <div className="mb-5 lg:mb-4">
+                <h2 className="font-display text-2xl font-bold text-text-primary sm:text-3xl">
+                    Sign In
+                </h2>
+                <p className="mt-2 text-sm text-text-secondary">
+                    Enter your credentials to access the portal
+                </p>
+            </div>
 
+            {/* Error */}
             {error && (
-                <div className="rounded-lg bg-error/10 px-4 py-3 text-sm text-error">{error}</div>
+                <div className="mb-6 flex items-center gap-3 rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-sm text-error">
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-error/10 text-xs">
+                        !
+                    </span>
+                    {error}
+                </div>
             )}
 
-            <div>
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-text-secondary">
-                    Email Address
-                </label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="you@example.com"
-                />
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-3">
+                {/* Email */}
+                <div>
+                    <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        Email Address
+                    </label>
+                    <div className="relative">
+                        <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted" />
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full rounded-xl border border-border bg-white py-3 pl-11 pr-4 text-sm text-text-primary outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/10 placeholder:text-text-muted"
+                            placeholder="you@example.com"
+                        />
+                    </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                        <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                            Password
+                        </label>
+                        <a href="#" className="text-xs font-medium text-primary transition-colors hover:text-secondary">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    <div className="relative">
+                        <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted" />
+                        <input
+                            id="password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full rounded-xl border border-border bg-white py-3 pl-11 pr-12 text-sm text-text-primary outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/10 placeholder:text-text-muted"
+                            placeholder="••••••••"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-primary"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                            {showPassword ? <FaEyeSlash className="text-sm" /> : <FaEye className="text-sm" />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Remember Me */}
+                <div className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        id="remember"
+                        className="h-4 w-4 rounded border-border text-primary accent-primary"
+                    />
+                    <label htmlFor="remember" className="text-sm text-text-secondary">
+                        Remember me
+                    </label>
+                </div>
+
+                {/* Submit */}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="group relative w-full overflow-hidden rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                        {loading ? (
+                            <>
+                                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Signing in...
+                            </>
+                        ) : (
+                            'Sign In'
+                        )}
+                    </span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-primary-light to-primary opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+            </form>
+
+            {/* Divider */}
+            <div className="my-5 lg:my-4 flex items-center gap-4">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-text-muted">OR</span>
+                <div className="h-px flex-1 bg-border" />
             </div>
 
-            <div>
-                <label htmlFor="password" className="mb-1 block text-sm font-medium text-text-secondary">
-                    Password
-                </label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="••••••••"
-                />
+            {/* Additional Info */}
+            <div className="rounded-xl border border-border bg-background/60 p-3 text-center">
+                <p className="text-xs text-text-secondary">
+                    Don&apos;t have an account?{' '}
+                    <span className="font-semibold text-primary">
+                        Contact your campus administration
+                    </span>{' '}
+                    to get your portal credentials.
+                </p>
             </div>
 
-            <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-primary px-4 py-2.5 font-semibold text-white transition hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60"
-            >
-                {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-        </form>
+            {/* Contact */}
+            <p className="mt-4 text-center text-xs text-text-muted">
+                Need help?{' '}
+                <a href="tel:0310-8509645" className="font-medium text-primary hover:text-secondary transition-colors">
+                    0310-8509645
+                </a>{' '}
+                •{' '}
+                <a href="mailto:buraqedn@gmail.com" className="font-medium text-primary hover:text-secondary transition-colors">
+                    buraqedn@gmail.com
+                </a>
+            </p>
+        </div>
     );
 }
