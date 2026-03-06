@@ -1,124 +1,41 @@
-const prisma = require('../config/prisma');
+module.exports = (sequelize, DataTypes) => {
+    const User = sequelize.define('User', {
+        id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+        name: { type: DataTypes.STRING(100), allowNull: false },
+        email: { type: DataTypes.STRING(150), unique: true, allowNull: false },
+        username: { type: DataTypes.STRING(50), unique: true, allowNull: false },
+        password: { type: DataTypes.STRING(255), allowNull: false },
+        phone: { type: DataTypes.STRING(20) },
+        role: { type: DataTypes.ENUM('ADMIN', 'PRINCIPAL', 'STAFF'), defaultValue: 'STAFF' },
+        branchId: { type: DataTypes.INTEGER }
+    }, {
+        tableName: 'users',
+        timestamps: true
+    });
 
-/**
- * User Model
- * Database query methods using Prisma Client.
- */
-const User = {
-    /**
-     * Find a user by ID.
-     * @param {number} id
-     * @returns {Promise<Object|null>}
-     */
-    findById: async (id) => {
-        return prisma.user.findUnique({ where: { id } });
-    },
+    User.associate = (models) => {
+        User.belongsTo(models.Branch, { as: 'branch', foreignKey: 'branchId' });
+        User.hasOne(models.Branch, { as: 'principalBranch', foreignKey: 'principalId' });
+        User.hasMany(models.Student, { as: 'enrolledStudents', foreignKey: 'enrolledById' });
+        User.hasMany(models.Payment, { as: 'receivedPayments', foreignKey: 'receivedById' });
+    };
 
-    /**
-     * Find a user by email.
-     * @param {string} email
-     * @returns {Promise<Object|null>}
-     */
-    findByEmail: async (email) => {
-        return prisma.user.findUnique({ where: { email } });
-    },
+    // Wrapper methods for Prisma backwards compatibility
+    User.findById = async (id) => User.findByPk(id);
+    User.findByEmail = async (email) => User.findOne({ where: { email } });
+    User.findByUsername = async (username) => User.findOne({ where: { username } });
 
-    /**
-     * Find a user by username.
-     * @param {string} username
-     * @returns {Promise<Object|null>}
-     */
-    findByUsername: async (username) => {
-        return prisma.user.findUnique({ where: { username } });
-    },
-
-    /**
-     * Find a user by email or username (for login).
-     * @param {string} identifier - email or username
-     * @returns {Promise<Object|null>}
-     */
-    findByEmailOrUsername: async (identifier) => {
-        return prisma.user.findFirst({
+    User.findByEmailOrUsername = async (identifier) => {
+        const { Op } = require('sequelize');
+        return User.findOne({
             where: {
-                OR: [{ email: identifier }, { username: identifier }],
-            },
+                [Op.or]: [{ email: identifier }, { username: identifier }]
+            }
         });
-    },
+    };
 
-    /**
-     * Create a new user.
-     * @param {Object} userData - { name, email, username, password, phone, role, branchId }
-     * @returns {Promise<Object>}
-     */
-    create: async (userData) => {
-        return prisma.user.create({
-            data: userData,
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                phone: true,
-                role: true,
-                branchId: true,
-                createdAt: true,
-            },
-        });
-    },
+    // We intentionally use Sequelize's native create, update, delete, findAll.
+    // The custom methods are those findBy* which Prisma had natively.
 
-    /**
-     * Get all users with optional filters.
-     * @param {Object} where - Prisma where clause
-     * @returns {Promise<Array>}
-     */
-    findAll: async (where = {}) => {
-        return prisma.user.findMany({
-            where,
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                phone: true,
-                role: true,
-                branchId: true,
-                createdAt: true,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-    },
-
-    /**
-     * Update a user by ID.
-     * @param {number} id
-     * @param {Object} data
-     * @returns {Promise<Object>}
-     */
-    update: async (id, data) => {
-        return prisma.user.update({
-            where: { id },
-            data,
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-                phone: true,
-                role: true,
-                branchId: true,
-                updatedAt: true,
-            },
-        });
-    },
-
-    /**
-     * Delete a user by ID.
-     * @param {number} id
-     * @returns {Promise<Object>}
-     */
-    delete: async (id) => {
-        return prisma.user.delete({ where: { id } });
-    },
+    return User;
 };
-
-module.exports = User;

@@ -8,11 +8,10 @@
     "dev": "nodemon",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.{js,json}\""
+    "format": "prettier --write \"src/**/*.{js,json}\"",
+    "db:seed": "npx sequelize-cli db:seed:all"
   },
   "dependencies": {
-    "@prisma/adapter-mariadb": "^7.4.2",
-    "@prisma/client": "^7.4.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -23,16 +22,14 @@
     "jsonwebtoken": "^9.0.3",
     "mariadb": "^3.5.2",
     "morgan": "^1.10.1",
-    "mysql2": "^3.19.0"
+    "mysql2": "^3.19.0",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.1",
-    "prisma": "^7.4.2"
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
+    "sequelize-cli": "^6.6.5"
   }
 }
