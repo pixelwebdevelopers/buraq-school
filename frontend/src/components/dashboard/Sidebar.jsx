@@ -53,7 +53,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 </div>
 
                 {/* Navigation Links */}
-                <div className="flex-1 overflow-y-auto px-3 py-6 no-scrollbar">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-6 no-scrollbar">
                     <nav className="space-y-2">
                         {visibleLinks.map((link) => (
                             <NavLink
