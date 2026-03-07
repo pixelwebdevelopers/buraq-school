@@ -2,14 +2,23 @@ const express = require('express');
 const router = express.Router();
 
 const authRoutes = require('./authRoutes');
+const branchRoutes = require('./branchRoutes');
+const dashboardRoutes = require('./dashboardRoutes');
+const studentRoutes = require('./studentRoutes');
 
 /**
  * API Route Index
  *
  * All routes are prefixed with /api (set in app.js).
- * ├── /auth   → Authentication routes
- * └── ...     → Future module routes
+ * ├── /auth       → Authentication routes
+ * ├── /branches   → Branch management routes
+ * ├── /dashboard  → Dashboard statistics
+ * ├── /students   → Student management routes
+ * └── ...         → Future module routes
  */
 router.use('/auth', authRoutes);
+router.use('/branches', branchRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/students', studentRoutes);
 
 module.exports = router;

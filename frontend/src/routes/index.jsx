@@ -14,6 +14,9 @@ import NotFound from '@/pages/NotFound';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 
+import Branches from '@/pages/Branches';
+import Students from '@/pages/Students';
+
 /**
  * Application route configuration.
  *
@@ -26,6 +29,7 @@ import ResetPassword from '@/pages/ResetPassword';
  * ├── /reset-password (AuthLayout)
  * ├── /dashboard (DashboardLayout) → protected pages
  * │   └── index               → Dashboard home
+ * │   └── branches            → Branches management (Admin)
  * └── * → 404 Not Found
  */
 const router = createBrowserRouter([
@@ -49,6 +53,8 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
             { index: true, element: <Dashboard /> },
+            { path: 'branches', element: <Branches /> },
+            { path: 'students', element: <Students /> },
         ],
     },
     {
