@@ -16,4 +16,10 @@ module.exports = {
 
     // Bcrypt
     bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10,
+
+    // SMTP Configuration (Laragon Mailcatcher defaults)
+    smtpHost: process.env.SMTP_HOST || '127.0.0.1',
+    smtpPort: parseInt(process.env.SMTP_PORT, 10) || 1025,
+    smtpUser: process.env.SMTP_USER || '',
+    smtpPass: process.env.SMTP_PASS || '',
 };

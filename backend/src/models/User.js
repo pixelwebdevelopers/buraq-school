@@ -7,7 +7,9 @@ module.exports = (sequelize, DataTypes) => {
         password: { type: DataTypes.STRING(255), allowNull: false },
         phone: { type: DataTypes.STRING(20) },
         role: { type: DataTypes.ENUM('ADMIN', 'PRINCIPAL', 'STAFF'), defaultValue: 'STAFF' },
-        branchId: { type: DataTypes.INTEGER }
+        branchId: { type: DataTypes.INTEGER },
+        resetPasswordToken: { type: DataTypes.STRING(255) },
+        resetPasswordExpires: { type: DataTypes.DATE }
     }, {
         tableName: 'users',
         timestamps: true

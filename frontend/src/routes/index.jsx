@@ -11,6 +11,9 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
 
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+
 /**
  * Application route configuration.
  *
@@ -19,6 +22,8 @@ import NotFound from '@/pages/NotFound';
  * │   └── index               → Landing page
  * ├── /login (AuthLayout)     → auth pages
  * │   └── index               → Login form
+ * ├── /forgot-password (AuthLayout)
+ * ├── /reset-password (AuthLayout)
  * ├── /dashboard (DashboardLayout) → protected pages
  * │   └── index               → Dashboard home
  * └── * → 404 Not Found
@@ -35,6 +40,8 @@ const router = createBrowserRouter([
         element: <AuthLayout />,
         children: [
             { path: 'login', element: <Login /> },
+            { path: 'forgot-password', element: <ForgotPassword /> },
+            { path: 'reset-password', element: <ResetPassword /> },
         ],
     },
     {

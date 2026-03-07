@@ -4,11 +4,10 @@ const { body } = require('express-validator');
  * Validation rules for login request.
  */
 const loginValidator = [
-    body('email')
+    body('identifier')
         .trim()
-        .isEmail()
-        .withMessage('Please provide a valid email address')
-        .normalizeEmail(),
+        .notEmpty()
+        .withMessage('Please provide your email or username'),
     body('password')
         .notEmpty()
         .withMessage('Password is required'),

@@ -9,7 +9,7 @@ import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 export default function Login() {
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [formData, setFormData] = useState({ identifier: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -58,22 +58,22 @@ export default function Login() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-3">
-                {/* Email */}
+                {/* Identifier */}
                 <div>
-                    <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-secondary">
-                        Email Address
+                    <label htmlFor="identifier" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        Email or Username
                     </label>
                     <div className="relative">
                         <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted" />
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
+                            id="identifier"
+                            name="identifier"
+                            type="text"
                             required
-                            value={formData.email}
+                            value={formData.identifier}
                             onChange={handleChange}
                             className="w-full rounded-xl border border-border bg-white py-3 pl-11 pr-4 text-sm text-text-primary outline-none transition-all focus:border-primary focus:ring-3 focus:ring-primary/10 placeholder:text-text-muted"
-                            placeholder="you@example.com"
+                            placeholder="Email or Username"
                         />
                     </div>
                 </div>
@@ -84,9 +84,9 @@ export default function Login() {
                         <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
                             Password
                         </label>
-                        <a href="#" className="text-xs font-medium text-primary transition-colors hover:text-secondary">
+                        <Link to="/forgot-password" className="text-xs font-medium text-primary transition-colors hover:text-secondary">
                             Forgot Password?
-                        </a>
+                        </Link>
                     </div>
                     <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted" />

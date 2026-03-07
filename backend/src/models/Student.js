@@ -11,6 +11,8 @@ module.exports = (sequelize, DataTypes) => {
         religion: { type: DataTypes.STRING(50) },
         gender: { type: DataTypes.STRING(10) },
         classAdmitted: { type: DataTypes.STRING(30) },
+        currentClass: { type: DataTypes.STRING(20) }, // playgroup, nursery, 1-10, first year, second year
+        section: { type: DataTypes.STRING(10) },
         referenceInSchool: { type: DataTypes.STRING(100) },
         specialInfo: { type: DataTypes.TEXT },
         guardianName: { type: DataTypes.STRING(100) },
