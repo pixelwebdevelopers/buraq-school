@@ -16,6 +16,7 @@ import ResetPassword from '@/pages/ResetPassword';
 
 import Branches from '@/pages/Branches';
 import Students from '@/pages/Students';
+import FamilyTree from '@/pages/FamilyTree';
 
 /**
  * Application route configuration.
@@ -55,6 +56,7 @@ const router = createBrowserRouter([
             { index: true, element: <Dashboard /> },
             { path: 'branches', element: <Branches /> },
             { path: 'students', element: <Students /> },
+            { path: 'family-tree', element: <FamilyTree /> },
         ],
     },
     {
