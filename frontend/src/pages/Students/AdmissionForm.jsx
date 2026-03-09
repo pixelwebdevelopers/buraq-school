@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
-export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isAdmin }) {
-    const [formData, setFormData] = useState({
+export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isAdmin, initialData }) {
+    const isEditing = !!initialData;
+
+    const [formData, setFormData] = useState(initialData ? {
+        ...initialData,
+        // Extract family data if nested
+        fatherName: initialData.Family?.fatherName || initialData.fatherName || '',
+        fatherPhone: initialData.Family?.fatherPhone || initialData.fatherPhone || '',
+        fatherOccupation: initialData.Family?.fatherOccupation || initialData.fatherOccupation || '',
+        // Make sure date is formatted correctly for date input if it exists
+        dateOfBirth: initialData.dateOfBirth ? new Date(initialData.dateOfBirth).toISOString().split('T')[0] : '',
+    } : {
         // Basic Info
         name: '',
         dateOfBirth: '',
@@ -46,7 +56,8 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
         characterCert: false,
         birthCert: false,
 
-        branchId: ''
+        branchId: '',
+        status: 'ACTIVE'
     });
 
     if (!isOpen) return null;
@@ -78,7 +89,7 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
             <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
                 <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50">
                     <h2 className="text-xl font-bold text-gray-800">
-                        Admit New Student
+                        {isEditing ? 'Edit Student Profile' : 'Admit New Student'}
                     </h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
                         <FaTimes className="text-xl" />
@@ -90,25 +101,32 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
 
                         {/* Family Tree Link */}
                         <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100 shadow-sm">
-                            <h3 className="text-sm font-bold text-[#4B5EAA] mb-4 flex items-center gap-2 uppercase tracking-wide">
-                                <span className="w-1.5 h-4 bg-[#4B5EAA] rounded-full"></span>
-                                Family Tree Link
-                            </h3>
-                            <p className="text-xs text-gray-500 mb-5 font-medium leading-relaxed">
-                                A family tree is constructed automatically based on the Father's phone number within the target branch. It links sibling records together for fee management.
-                            </p>
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-sm font-bold text-[#4B5EAA] flex items-center gap-2 uppercase tracking-wide">
+                                        <span className="w-1.5 h-4 bg-[#4B5EAA] rounded-full"></span>
+                                        Family Tree Link
+                                    </h3>
+                                    <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">
+                                        {isEditing
+                                            ? "Family details are managed separately in the Family Tree section."
+                                            : "A family tree is constructed automatically based on the Father's phone number within the target branch. It links sibling records together for fee management."}
+                                    </p>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Father Phone <span className="text-red-500">*</span></label>
-                                    <input required type="text" name="fatherPhone" value={formData.fatherPhone} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm" placeholder="e.g. 03xx-xxxxxxx" />
+                                    <input required type="text" name="fatherPhone" value={formData.fatherPhone} onChange={handleChange} disabled={isEditing} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500" placeholder="e.g. 03xx-xxxxxxx" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Father Name <span className="text-red-500">*</span></label>
-                                    <input required type="text" name="fatherName" value={formData.fatherName} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm" placeholder="John Doe" />
+                                    <input required type="text" name="fatherName" value={formData.fatherName} onChange={handleChange} disabled={isEditing} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500" placeholder="John Doe" />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Occupation</label>
-                                    <input type="text" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm" placeholder="Engineer" />
+                                    <input type="text" name="fatherOccupation" value={formData.fatherOccupation} onChange={handleChange} disabled={isEditing} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500" placeholder="Engineer" />
                                 </div>
                             </div>
                         </div>
@@ -156,6 +174,18 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Religion</label>
                                     <input type="text" name="religion" value={formData.religion} onChange={handleChange} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm" />
                                 </div>
+                                {isEditing && (
+                                    <div className="sm:col-span-2 lg:col-span-3 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2">
+                                        <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Student Status <span className="text-red-500">*</span></label>
+                                        <select name="status" value={formData.status} onChange={handleChange} className="w-full md:w-1/2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all bg-white cursor-pointer shadow-sm">
+                                            <option value="ACTIVE" className="text-green-600 font-bold">Active</option>
+                                            <option value="LEFT" className="text-gray-600 font-bold">Left</option>
+                                            <option value="SUSPENDED" className="text-red-600 font-bold">Suspended</option>
+                                            <option value="PASSED_OUT" className="text-blue-600 font-bold">Passed Out</option>
+                                            <option value="STRUCK_OFF" className="text-orange-600 font-bold">Struck Off</option>
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -332,7 +362,7 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
                         Cancel
                     </button>
                     <button type="submit" form="admission-form" className="rounded-lg bg-[#4B5EAA] px-8 py-2 text-sm font-medium text-white shadow-md hover:bg-[#3A4A8B] hover:shadow-lg transition-all">
-                        Finalize Admission
+                        {isEditing ? 'Update Details' : 'Finalize Admission'}
                     </button>
                 </div>
             </div>

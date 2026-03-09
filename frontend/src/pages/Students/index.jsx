@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { studentService } from '@/services/apiServices';
-import { FaPlus, FaSearch, FaFilter, FaUserGraduate, FaIdCard, FaPhoneAlt } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaUserGraduate, FaIdCard, FaPhoneAlt, FaEdit } from 'react-icons/fa';
 import AdmissionForm from './AdmissionForm';
 
 // Helper to fetch branches if Admin
 import branchServiceDefault from '@/services/branchService';
 
 import StudentDetailModal from './StudentDetailModal';
+import StudentFeeModal from './StudentFeeModal';
 
 export default function Students() {
     const { user } = useAuth();
@@ -18,10 +19,14 @@ export default function Students() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [studentToEdit, setStudentToEdit] = useState(null);
 
     // Modal state for View/Print
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    // Modal state for Fees
+    const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -70,8 +75,15 @@ export default function Students() {
         return () => clearTimeout(delayDebounceFn);
     }, [fetchStudents]);
 
-    const handleOpenForm = () => setIsFormOpen(true);
-    const handleCloseForm = () => setIsFormOpen(false);
+    const handleOpenForm = (student = null) => {
+        setStudentToEdit(student);
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
+        setStudentToEdit(null);
+    };
 
     const handleRowClick = (student) => {
         setSelectedStudent(student);
@@ -83,14 +95,46 @@ export default function Students() {
         setSelectedStudent(null);
     };
 
+    const handleOpenFeeModal = (e, student) => {
+        e.stopPropagation(); // Prevent row click from opening detail modal
+        setSelectedStudent(student);
+        setIsFeeModalOpen(true);
+    };
+
+    const handleCloseFeeModal = () => {
+        setIsFeeModalOpen(false);
+        setSelectedStudent(null);
+    };
+
     const handleSubmitForm = async (formData) => {
         try {
-            await studentService.admitStudent(formData);
+            if (studentToEdit) {
+                await studentService.updateStudent(studentToEdit.id, formData);
+            } else {
+                await studentService.admitStudent(formData);
+            }
             handleCloseForm();
             fetchStudents();
         } catch (err) {
-            console.error("Failed to admit student:", err);
-            alert(err.response?.data?.message || 'Failed to admit student.');
+            console.error("Failed to save student:", err);
+            alert(err.response?.data?.message || 'Failed to save student.');
+        }
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'ACTIVE':
+                return <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-green-600 ring-1 ring-inset ring-green-600/20">Active</span>;
+            case 'LEFT':
+                return <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-gray-600 ring-1 ring-inset ring-gray-600/20">Left</span>;
+            case 'SUSPENDED':
+                return <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-red-600 ring-1 ring-inset ring-red-600/20">Suspended</span>;
+            case 'PASSED_OUT':
+                return <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-blue-600 ring-1 ring-inset ring-blue-600/20">Passed Out</span>;
+            case 'STRUCK_OFF':
+                return <span className="inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-orange-600 ring-1 ring-inset ring-orange-600/20">Struck Off</span>;
+            default:
+                return <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-gray-600 ring-1 ring-inset ring-gray-600/20">Unknown</span>;
         }
     };
 
@@ -102,7 +146,7 @@ export default function Students() {
                     <p className="text-sm text-gray-500 mt-1">Manage enrollments, family records, and view student details.</p>
                 </div>
                 <button
-                    onClick={handleOpenForm}
+                    onClick={() => handleOpenForm()}
                     className="flex items-center gap-2 rounded-lg bg-[#4B5EAA] px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-[#3A4A8B] hover:shadow-lg"
                 >
                     <FaPlus />
@@ -186,6 +230,7 @@ export default function Students() {
                                 <th className="px-6 py-4">Family (Father)</th>
                                 {isAdmin && <th className="px-6 py-4">Branch</th>}
                                 <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4 text-center">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -242,9 +287,28 @@ export default function Students() {
                                             </td>
                                         )}
                                         <td className="px-6 py-4">
-                                            <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-green-600 ring-1 ring-inset ring-green-600/20">
-                                                Enrolled
-                                            </span>
+                                            {getStatusBadge(student.status)}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenForm(student);
+                                                    }}
+                                                    className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-1 px-3 rounded text-xs transition-colors"
+                                                >
+                                                    <FaEdit className="w-3.5 h-3.5" />
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleOpenFeeModal(e, student)}
+                                                    className="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold py-1 px-3 rounded text-xs transition-colors"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    Fees
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -261,6 +325,7 @@ export default function Students() {
                     onSubmit={handleSubmitForm}
                     branches={branches}
                     isAdmin={isAdmin}
+                    initialData={studentToEdit}
                 />
             )}
 
@@ -270,6 +335,14 @@ export default function Students() {
                     onClose={handleCloseDetailModal}
                     student={selectedStudent}
                     branchName={isAdmin ? branches.find(b => b.id === selectedStudent.branchId)?.name : user?.branchName}
+                />
+            )}
+
+            {isFeeModalOpen && selectedStudent && (
+                <StudentFeeModal
+                    isOpen={isFeeModalOpen}
+                    onClose={handleCloseFeeModal}
+                    student={selectedStudent}
                 />
             )}
         </div>

@@ -35,7 +35,8 @@ module.exports = (sequelize, DataTypes) => {
         branchId: { type: DataTypes.INTEGER, allowNull: false },
         familyId: { type: DataTypes.INTEGER, allowNull: false },
         enrolledById: { type: DataTypes.INTEGER },
-        admissionDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+        admissionDate: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+        status: { type: DataTypes.STRING(20), allowNull: false, defaultValue: 'ACTIVE' }
     }, {
         tableName: 'students',
         timestamps: true

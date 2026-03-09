@@ -1,4 +1,4 @@
-const { Family, Student, Branch } = require('../models');
+const { Family, Student, Branch, FeeLog } = require('../models');
 const { Op } = require('sequelize');
 
 exports.searchFamilies = async (req, res) => {
@@ -25,14 +25,33 @@ exports.searchFamilies = async (req, res) => {
                 {
                     model: Branch,
                     attributes: ['id', 'name']
+                },
+                {
+                    model: FeeLog,
+                    attributes: ['amount', 'paidAmount']
                 }
             ],
             limit: 20
         });
 
+        // Calculate dynamic balance for each family
+        const familiesWithBalance = families.map(family => {
+            const familyJSON = family.toJSON();
+            const balance = (familyJSON.FeeLogs || []).reduce((acc, log) => {
+                return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount));
+            }, 0);
+
+            // Remove FeeLogs from the response to keep it clean
+            delete familyJSON.FeeLogs;
+            return {
+                ...familyJSON,
+                balance: balance
+            };
+        });
+
         res.status(200).json({
             success: true,
-            data: families
+            data: familiesWithBalance
         });
     } catch (error) {
         console.error('Error searching families:', error);
@@ -55,14 +74,33 @@ exports.getFamilyStudents = async (req, res) => {
                 {
                     model: Branch,
                     attributes: ['id', 'name']
+                },
+                {
+                    model: FeeLog,
+                    attributes: ['amount', 'paidAmount']
                 }
             ],
             order: [['createdAt', 'DESC']]
         });
 
+        // Calculate individual balance for each student
+        const studentsWithBalance = students.map(student => {
+            const studentJSON = student.toJSON();
+            const balance = (studentJSON.FeeLogs || []).reduce((acc, log) => {
+                return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount));
+            }, 0);
+
+            // Remove FeeLogs from the response
+            delete studentJSON.FeeLogs;
+            return {
+                ...studentJSON,
+                balance: balance
+            };
+        });
+
         res.status(200).json({
             success: true,
-            data: students
+            data: studentsWithBalance
         });
     } catch (error) {
         console.error('Error getting family students:', error);
@@ -76,7 +114,7 @@ exports.getFamilyStudents = async (req, res) => {
 exports.updateFamily = async (req, res) => {
     try {
         const { id } = req.params;
-        const { fatherName, fatherPhone, fatherOccupation, balance } = req.body;
+        const { fatherName, fatherPhone, fatherOccupation } = req.body;
 
         const family = await Family.findByPk(id);
 
@@ -104,24 +142,38 @@ exports.updateFamily = async (req, res) => {
         await family.update({
             fatherName: fatherName || family.fatherName,
             fatherPhone: fatherPhone || family.fatherPhone,
-            fatherOccupation: fatherOccupation !== undefined ? fatherOccupation : family.fatherOccupation,
-            balance: balance !== undefined ? balance : family.balance
+            fatherOccupation: fatherOccupation !== undefined ? fatherOccupation : family.fatherOccupation
         });
 
-        // Fetch the updated family with its Branch to return complete data
-        const updatedFamily = await Family.findByPk(id, {
+        // Fetch the updated family with its Branch and FeeLogs to calculate balance
+        const updatedFamilyData = await Family.findByPk(id, {
             include: [
                 {
                     model: Branch,
                     attributes: ['id', 'name']
+                },
+                {
+                    model: FeeLog,
+                    attributes: ['amount', 'paidAmount']
                 }
             ]
         });
 
+        const familyJSON = updatedFamilyData.toJSON();
+        const balance = (familyJSON.FeeLogs || []).reduce((acc, log) => {
+            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount));
+        }, 0);
+
+        delete familyJSON.FeeLogs;
+        const finalFamily = {
+            ...familyJSON,
+            balance: balance
+        };
+
         res.status(200).json({
             success: true,
             message: 'Family updated successfully',
-            data: updatedFamily
+            data: finalFamily
         });
     } catch (error) {
         console.error('Error updating family:', error);

@@ -11,4 +11,7 @@ router.route('/')
     .get(studentController.getStudents)
     .post(studentController.admitStudent);
 
+router.route('/:id')
+    .put(studentController.updateStudent);
+
 module.exports = router;

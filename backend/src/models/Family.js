@@ -17,10 +17,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(100),
             allowNull: true,
         },
-        balance: {
-            type: DataTypes.DECIMAL(12, 2),
-            defaultValue: 0,
-        },
         branchId: {
             type: DataTypes.INTEGER,
             allowNull: false,

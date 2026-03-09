@@ -17,5 +17,10 @@ export const studentService = {
     admitStudent: async (studentData) => {
         const response = await api.post('/students', studentData);
         return response.data;
+    },
+
+    updateStudent: async (id, studentData) => {
+        const response = await api.put(`/students/${id}`, studentData);
+        return response.data;
     }
 };

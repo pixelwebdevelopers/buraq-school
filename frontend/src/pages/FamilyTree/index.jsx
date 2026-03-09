@@ -12,7 +12,7 @@ export default function FamilyTree() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [familyToEdit, setFamilyToEdit] = useState(null);
-    const [editForm, setEditForm] = useState({ fatherName: '', fatherPhone: '', fatherOccupation: '', balance: '' });
+    const [editForm, setEditForm] = useState({ fatherName: '', fatherPhone: '', fatherOccupation: '' });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
@@ -75,8 +75,7 @@ export default function FamilyTree() {
         setEditForm({
             fatherName: family.fatherName,
             fatherPhone: family.fatherPhone,
-            fatherOccupation: family.fatherOccupation || '',
-            balance: family.balance || 0
+            fatherOccupation: family.fatherOccupation || ''
         });
         setIsEditModalOpen(true);
     };
@@ -307,10 +306,6 @@ export default function FamilyTree() {
                                                             <span className="text-gray-500 text-xs font-semibold flex items-center gap-1.5"><FaBuilding className="text-gray-400" /> Class</span>
                                                             <span className="font-bold text-gray-800 capitalize">{student.currentClass} - {student.section}</span>
                                                         </div>
-                                                        <div className="flex justify-between items-center bg-gray-50/50 p-1.5 rounded">
-                                                            <span className="text-gray-500 text-xs font-semibold flex items-center gap-1.5"><FaIdCard className="text-gray-400" /> Roll/Ref</span>
-                                                            <span className="font-medium text-gray-700">{student.referenceNo || 'N/A'}</span>
-                                                        </div>
                                                         <div className="flex justify-between items-center bg-gray-50/50 p-1.5 rounded border-t border-gray-100">
                                                             <span className="text-gray-500 text-xs font-semibold font-mono">Monthly Fee</span>
                                                             <span className="font-medium text-gray-700 text-xs">Rs. {student.monthlyFee || 0}</span>
@@ -322,6 +317,10 @@ export default function FamilyTree() {
                                                         <div className="flex justify-between items-center bg-gray-50/50 p-1.5 rounded">
                                                             <span className="text-gray-500 text-xs font-semibold font-mono">Lab/Misc</span>
                                                             <span className="font-medium text-gray-700 text-xs">Rs. {student.labMiscFee || 0}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center bg-red-50/50 p-1.5 rounded border-t border-red-100">
+                                                            <span className="text-red-600 text-xs font-bold uppercase">Balance</span>
+                                                            <span className="font-bold text-red-700 text-sm">Rs. {student.balance || 0}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -385,16 +384,6 @@ export default function FamilyTree() {
                                             className="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none"
                                         />
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1">Balance (Rs.)</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={editForm.balance}
-                                        onChange={(e) => setEditForm({ ...editForm, balance: parseFloat(e.target.value) || 0 })}
-                                        className="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none font-medium"
-                                    />
                                 </div>
                                 <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-gray-100">
                                     <button

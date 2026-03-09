@@ -187,6 +187,80 @@ const studentController = {
             await t.rollback();
             next(error);
         }
+    },
+
+    // Update existing student and status
+    updateStudent: async (req, res, next) => {
+        try {
+            const studentId = req.params.id;
+            const {
+                name, dateOfBirth, gender, currentClass, classAdmitted, section,
+                referenceNo, formBNicNo, previousSchool, caste, religion,
+                referenceInSchool, specialInfo, guardianName, guardianRelation,
+                houseNo, streetNo, blockPhase, mohallahColony, cell1, cell2, whatsapp,
+                schoolLeavingCert, characterCert, birthCert,
+                admissionFee, monthlyFee, annualCharges, academyFee, labMiscFee,
+                status
+            } = req.body;
+
+            const student = await Student.findByPk(studentId);
+
+            if (!student) {
+                const err = new Error('Student not found');
+                err.statusCode = 404;
+                throw err;
+            }
+
+            // Ensure proper authorization if not admin
+            if (req.user.role !== 'ADMIN' && student.branchId !== req.user.branchId) {
+                const err = new Error('Unauthorized to edit this student');
+                err.statusCode = 403;
+                throw err;
+            }
+
+            await student.update({
+                name: name !== undefined ? name : student.name,
+                dateOfBirth: dateOfBirth !== undefined ? dateOfBirth : student.dateOfBirth,
+                gender: gender !== undefined ? gender : student.gender,
+                currentClass: currentClass !== undefined ? currentClass : student.currentClass,
+                classAdmitted: classAdmitted !== undefined ? classAdmitted : student.classAdmitted,
+                section: section !== undefined ? section : student.section,
+                referenceNo: referenceNo !== undefined ? referenceNo : student.referenceNo,
+                formBNicNo: formBNicNo !== undefined ? formBNicNo : student.formBNicNo,
+                previousSchool: previousSchool !== undefined ? previousSchool : student.previousSchool,
+                caste: caste !== undefined ? caste : student.caste,
+                religion: religion !== undefined ? religion : student.religion,
+                referenceInSchool: referenceInSchool !== undefined ? referenceInSchool : student.referenceInSchool,
+                specialInfo: specialInfo !== undefined ? specialInfo : student.specialInfo,
+                guardianName: guardianName !== undefined ? guardianName : student.guardianName,
+                guardianRelation: guardianRelation !== undefined ? guardianRelation : student.guardianRelation,
+                houseNo: houseNo !== undefined ? houseNo : student.houseNo,
+                streetNo: streetNo !== undefined ? streetNo : student.streetNo,
+                blockPhase: blockPhase !== undefined ? blockPhase : student.blockPhase,
+                mohallahColony: mohallahColony !== undefined ? mohallahColony : student.mohallahColony,
+                cell1: cell1 !== undefined ? cell1 : student.cell1,
+                cell2: cell2 !== undefined ? cell2 : student.cell2,
+                whatsapp: whatsapp !== undefined ? whatsapp : student.whatsapp,
+                schoolLeavingCert: schoolLeavingCert !== undefined ? !!schoolLeavingCert : student.schoolLeavingCert,
+                characterCert: characterCert !== undefined ? !!characterCert : student.characterCert,
+                birthCert: birthCert !== undefined ? !!birthCert : student.birthCert,
+                admissionFee: admissionFee !== undefined ? admissionFee : student.admissionFee,
+                monthlyFee: monthlyFee !== undefined ? monthlyFee : student.monthlyFee,
+                annualCharges: annualCharges !== undefined ? annualCharges : student.annualCharges,
+                academyFee: academyFee !== undefined ? academyFee : student.academyFee,
+                labMiscFee: labMiscFee !== undefined ? labMiscFee : student.labMiscFee,
+                status: status !== undefined ? status : student.status
+            });
+
+            res.status(200).json({
+                success: true,
+                message: 'Student details updated successfully',
+                data: student
+            });
+
+        } catch (error) {
+            next(error);
+        }
     }
 };
 
