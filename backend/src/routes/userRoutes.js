@@ -7,11 +7,12 @@ const { protect, authorize } = require('../middleware/auth');
 router.put('/profile', protect, userController.updateProfile);
 router.patch('/profile/password', protect, userController.updateMyPassword);
 
-// Admin-only management routes
+// Admin and Principal management routes
 router.use(protect);
-router.use(authorize('ADMIN'));
+router.use(authorize('ADMIN', 'PRINCIPAL'));
 
 router.get('/', userController.getUsers);
+router.post('/', userController.createUser);
 router.put('/:id', userController.updateUser);
 router.patch('/:id/toggle-status', userController.toggleStatus);
 router.delete('/:id', userController.deleteUser);

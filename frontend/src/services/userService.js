@@ -10,6 +10,14 @@ const userService = {
     },
 
     /**
+     * Admin/Principal: Create new user
+     */
+    createUser: async (userData) => {
+        const response = await api.post('/users', userData);
+        return response.data;
+    },
+
+    /**
      * Admin: Update user details
      */
     updateUser: async (id, userData) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import userService from '@/services/userService';
 import branchService from '@/services/branchService';
@@ -15,13 +15,31 @@ export default function Users() {
     const [filters, setFilters] = useState({ branchId: '', search: '' });
 
     // Modal states
-    const [showEditModal, setShowEditModal] = useState(false);
+    const [showUserModal, setShowUserModal] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [newPassword, setNewPassword] = useState('');
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        username: '',
+        password: '',
+        phone: '',
+        role: 'STAFF',
+        branchId: ''
+    });
+
+    const isAdmin = currentUser?.role === 'ADMIN';
+    const isPrincipal = currentUser?.role === 'PRINCIPAL';
 
     useEffect(() => {
+        if (isPrincipal) {
+            setFilters(prev => ({ ...prev, branchId: currentUser.branchId }));
+        }
         fetchBranches();
+    }, [isPrincipal, currentUser?.branchId]);
+
+    useEffect(() => {
         fetchUsers();
     }, [pagination.currentPage, filters]);
 
@@ -44,10 +62,53 @@ export default function Users() {
             });
             setUsers(data.users);
             setPagination(data.pagination);
-        } catch (error) {
+        } catch {
             toast.error('Failed to fetch users');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleOpenModal = (user = null) => {
+        if (user) {
+            setSelectedUser(user);
+            setFormData({
+                name: user.name,
+                email: user.email,
+                username: user.username,
+                phone: user.phone || '',
+                role: user.role,
+                branchId: user.branchId || ''
+            });
+        } else {
+            setSelectedUser(null);
+            setFormData({
+                name: '',
+                email: '',
+                username: '',
+                password: '',
+                phone: '',
+                role: 'STAFF',
+                branchId: isPrincipal ? currentUser.branchId : ''
+            });
+        }
+        setShowUserModal(true);
+    };
+
+    const handleSubmitUser = async (e) => {
+        e.preventDefault();
+        try {
+            if (selectedUser) {
+                await userService.updateUser(selectedUser.id, formData);
+                toast.success('User updated successfully');
+            } else {
+                await userService.createUser(formData);
+                toast.success('User created successfully');
+            }
+            setShowUserModal(false);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Action failed');
         }
     };
 
@@ -56,7 +117,7 @@ export default function Users() {
             await userService.toggleStatus(user.id);
             toast.success(`User ${user.isActive ? 'disabled' : 'enabled'} successfully`);
             fetchUsers();
-        } catch (error) {
+        } catch {
             toast.error('Failed to update user status');
         }
     };
@@ -81,7 +142,7 @@ export default function Users() {
             toast.success('Password updated successfully');
             setShowPasswordModal(false);
             setNewPassword('');
-        } catch (error) {
+        } catch {
             toast.error('Failed to update password');
         }
     };
@@ -91,8 +152,16 @@ export default function Users() {
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-primary">User Management</h1>
-                    <p className="text-text-muted">View and manage system users across all branches.</p>
+                    <p className="text-text-muted">
+                        {isPrincipal ? `Manage staff for Branch #${currentUser.branchId}` : 'View and manage system users across all branches.'}
+                    </p>
                 </div>
+                <button
+                    onClick={() => handleOpenModal()}
+                    className="flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-primary-light active:scale-95"
+                >
+                    <FaPlus /> Add New User
+                </button>
             </div>
 
             {/* Filters */}
@@ -107,16 +176,18 @@ export default function Users() {
                         onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
                     />
                 </div>
-                <select
-                    className="w-full rounded-lg border border-border px-4 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    value={filters.branchId}
-                    onChange={(e) => setFilters(prev => ({ ...prev, branchId: e.target.value, page: 1 }))}
-                >
-                    <option value="">All Branches</option>
-                    {branches.map(b => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                </select>
+                {!isPrincipal && (
+                    <select
+                        className="w-full rounded-lg border border-border px-4 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={filters.branchId}
+                        onChange={(e) => setFilters(prev => ({ ...prev, branchId: e.target.value, page: 1 }))}
+                    >
+                        <option value="">All Branches</option>
+                        {branches.map(b => (
+                            <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                    </select>
+                )}
             </div>
 
             {/* Users Table */}
@@ -152,7 +223,7 @@ export default function Users() {
                                         <td className="px-6 py-4">{u.name}</td>
                                         <td className="px-6 py-4">
                                             <span className={`rounded-full px-2 py-1 text-[10px] font-bold ${u.role === 'ADMIN' ? 'bg-red-50 text-red-600' :
-                                                    u.role === 'PRINCIPAL' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
+                                                u.role === 'PRINCIPAL' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
                                                 }`}>
                                                 {u.role}
                                             </span>
@@ -163,7 +234,14 @@ export default function Users() {
                                             <span className={u.isActive ? 'text-green-600' : 'text-gray-400'}>{u.isActive ? 'Active' : 'Disabled'}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
+                                            <div className="flex justify-end gap-1">
+                                                <button
+                                                    onClick={() => handleOpenModal(u)}
+                                                    className="p-2 text-text-muted hover:text-primary transition-colors"
+                                                    title="Edit User"
+                                                >
+                                                    <FaUserEdit />
+                                                </button>
                                                 <button
                                                     onClick={() => { setSelectedUser(u); setShowPasswordModal(true); }}
                                                     className="p-2 text-text-muted hover:text-primary transition-colors"
@@ -205,6 +283,115 @@ export default function Users() {
                 )}
             </div>
 
+            {/* User Create/Edit Modal */}
+            {showUserModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+                        <h3 className="text-xl font-bold text-primary mb-6">
+                            {selectedUser ? 'Edit User' : 'Create New User'}
+                        </h3>
+
+                        <form onSubmit={handleSubmitUser} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Username</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                    value={formData.username}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                                    required
+                                />
+                            </div>
+                            {!selectedUser && (
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Initial Password</label>
+                                    <input
+                                        type="password"
+                                        className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                        value={formData.password}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                        required
+                                    />
+                                </div>
+                            )}
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Phone Number</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Role</label>
+                                <select
+                                    className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none disabled:bg-gray-50 disabled:text-text-muted"
+                                    value={formData.role}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                                    disabled={!isAdmin}
+                                >
+                                    <option value="STAFF">Staff Member</option>
+                                    <option value="PRINCIPAL">Principal</option>
+                                    <option value="ADMIN">System Admin</option>
+                                </select>
+                            </div>
+                            {!isPrincipal && (
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Branch Assignment</label>
+                                    <select
+                                        className="w-full rounded-xl border border-border p-3 focus:border-primary focus:outline-none"
+                                        value={formData.branchId}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, branchId: e.target.value }))}
+                                    >
+                                        <option value="">Central / No Branch</option>
+                                        {branches.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            <div className="md:col-span-2 mt-6 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowUserModal(false)}
+                                    className="px-6 py-2 text-sm font-bold border border-border rounded-xl hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-6 py-2 text-sm font-bold bg-primary text-white rounded-xl hover:bg-primary-light shadow-md"
+                                >
+                                    {selectedUser ? 'Save Changes' : 'Create User'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             {/* Password Modal */}
             {showPasswordModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -236,7 +423,7 @@ export default function Users() {
                                 onClick={handleUpdatePassword}
                                 className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary-light shadow-md"
                             >
-                                Reset Password
+                                Save Key
                             </button>
                         </div>
                     </div>

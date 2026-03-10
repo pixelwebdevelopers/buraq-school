@@ -7,6 +7,7 @@ import VoucherManager from './VoucherManager';
 export default function Fees() {
     const { user } = useAuth();
     const isAdmin = user?.role === 'ADMIN';
+    const canSelectBranch = isAdmin;
 
     const [branches, setBranches] = useState([]);
 
@@ -20,7 +21,7 @@ export default function Fees() {
 
     useEffect(() => {
         const fetchBranches = async () => {
-            if (isAdmin) {
+            if (canSelectBranch) {
                 try {
                     const data = await branchServiceDefault.getAllBranches();
                     setBranches(data);
@@ -30,7 +31,7 @@ export default function Fees() {
             }
         };
         fetchBranches();
-    }, [isAdmin]);
+    }, [canSelectBranch]);
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
@@ -64,7 +65,7 @@ export default function Fees() {
             {/* Filter Bar */}
             <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {isAdmin && (
+                    {canSelectBranch && (
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Branch</label>
                             <select

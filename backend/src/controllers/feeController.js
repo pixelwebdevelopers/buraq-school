@@ -56,6 +56,11 @@ exports.generateVoucher = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Student not found.' });
         }
 
+        // Branch-scoping for STAFF/PRINCIPAL
+        if (req.user.role !== 'ADMIN' && student.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
+        }
+
         // Check if voucher already exists for this month/year
         const existingLog = await FeeLog.findOne({
             where: { studentId, month, year }
@@ -107,9 +112,16 @@ exports.payVoucher = async (req, res) => {
         const { id } = req.params;
         const { paidAmount } = req.body;
 
-        const voucher = await FeeLog.findByPk(id);
+        const voucher = await FeeLog.findByPk(id, {
+            include: [{ model: Student, attributes: ['branchId'] }]
+        });
         if (!voucher) {
             return res.status(404).json({ success: false, message: 'Voucher not found.' });
+        }
+
+        // Branch-scoping for STAFF/PRINCIPAL
+        if (req.user.role !== 'ADMIN' && voucher.Student?.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Access denied: Voucher belongs to another branch.' });
         }
 
         if (voucher.status === 'PAID') {
@@ -158,6 +170,11 @@ exports.getFamilyFees = async (req, res) => {
         const family = await Family.findByPk(familyId);
         if (!family) {
             return res.status(404).json({ success: false, message: 'Family not found.' });
+        }
+
+        // Branch-scoping for STAFF/PRINCIPAL
+        if (req.user.role !== 'ADMIN' && family.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Access denied: Family belongs to another branch.' });
         }
 
         // Fetch all fee logs for all students in this family
@@ -222,13 +239,19 @@ exports.generateFamilyVouchers = async (req, res) => {
     try {
         const { familyId, month, year } = req.body;
 
+        const family = await Family.findByPk(familyId);
+        if (!family) {
+            return res.status(404).json({ success: false, message: 'Family not found.' });
+        }
+
+        // Branch-scoping for STAFF/PRINCIPAL
+        if (req.user.role !== 'ADMIN' && family.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Access denied: Family belongs to another branch.' });
+        }
+
         const students = await Student.findAll({
             where: { familyId, status: 'ACTIVE' }
         });
-
-        if (students.length === 0) {
-            return res.status(400).json({ success: false, message: 'No active students found in this family.' });
-        }
 
         const results = {
             generated: [],
@@ -285,7 +308,12 @@ exports.generateFamilyVouchers = async (req, res) => {
 
 exports.bulkGenerateVouchers = async (req, res) => {
     try {
-        const { branchId, currentClass, month, year } = req.body;
+        let { branchId, currentClass, month, year } = req.body;
+
+        // Force branch scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
 
         if (!branchId || !month || !year) {
             return res.status(400).json({ success: false, message: 'Branch, month, and year are required.' });
@@ -353,7 +381,12 @@ exports.bulkGenerateVouchers = async (req, res) => {
 
 exports.getBulkFees = async (req, res) => {
     try {
-        const { branchId, currentClass, month, year } = req.query;
+        let { branchId, currentClass, month, year } = req.query;
+
+        // Force branch scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
 
         if (!branchId || !month || !year) {
             return res.status(400).json({ success: false, message: 'Branch, month, and year are required.' });

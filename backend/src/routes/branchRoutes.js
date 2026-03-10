@@ -6,15 +6,12 @@ const { protect, authorize } = require('../middleware/auth');
 // Apply authentication middleware to all routes
 router.use(protect);
 
-// Only ADMIN can access branch management endpoints
-router.use(authorize('ADMIN'));
-
 router.route('/')
-    .get(branchController.getBranches)
-    .post(branchController.createBranch);
+    .get(authorize('ADMIN', 'PRINCIPAL'), branchController.getBranches)
+    .post(authorize('ADMIN'), branchController.createBranch);
 
 router.route('/:id')
-    .get(branchController.getBranchById)
-    .put(branchController.updateBranch);
+    .get(authorize('ADMIN', 'PRINCIPAL'), branchController.getBranchById)
+    .put(authorize('ADMIN'), branchController.updateBranch);
 
 module.exports = router;

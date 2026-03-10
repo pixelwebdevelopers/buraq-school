@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiMenuAlt3, HiX } from 'react-icons/hi';
+import { useAuth } from '@/context/AuthContext';
 import logo from '@/assets/images/logo.png';
 
 const NAV_LINKS = [
@@ -15,6 +16,7 @@ const NAV_LINKS = [
  * Sticky with glassmorphism effect on scroll.
  */
 export default function Header() {
+    const { user } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -65,12 +67,21 @@ export default function Header() {
                             <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
                         </a>
                     ))}
-                    <Link
-                        to="/login"
-                        className="ml-4 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-                    >
-                        Login
-                    </Link>
+                    {user ? (
+                        <Link
+                            to="/dashboard"
+                            className="ml-4 rounded-lg bg-secondary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="ml-4 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                        >
+                            Login
+                        </Link>
+                    )}
                 </nav>
 
                 {/* Mobile Menu Button */}
@@ -99,12 +110,21 @@ export default function Header() {
                             {link.label}
                         </a>
                     ))}
-                    <Link
-                        to="/login"
-                        className="mt-2 rounded-lg bg-primary px-4 py-3 text-center text-sm font-semibold text-white transition-all hover:bg-primary-light"
-                    >
-                        Login to Portal
-                    </Link>
+                    {user ? (
+                        <Link
+                            to="/dashboard"
+                            className="mt-2 rounded-lg bg-secondary px-4 py-3 text-center text-sm font-semibold text-white transition-all hover:bg-secondary-light"
+                        >
+                            Go to Dashboard
+                        </Link>
+                    ) : (
+                        <Link
+                            to="/login"
+                            className="mt-2 rounded-lg bg-primary px-4 py-3 text-center text-sm font-semibold text-white transition-all hover:bg-primary-light"
+                        >
+                            Login to Portal
+                        </Link>
+                    )}
                 </nav>
             </div>
         </header>
