@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { FaTimes, FaSearch } from 'react-icons/fa';
 import familyService from '../../services/familyService';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isAdmin, initialData }) {
+    const { user } = useAuth();
     const isEditing = !!initialData;
 
     const [formData, setFormData] = useState(initialData ? {
@@ -58,7 +60,7 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
         characterCert: false,
         birthCert: false,
 
-        branchId: '',
+        branchId: isAdmin ? '' : (user?.branchId || ''),
         status: 'ACTIVE'
     });
 

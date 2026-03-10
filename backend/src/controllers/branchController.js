@@ -180,6 +180,41 @@ const branchController = {
 
                     await principal.save({ transaction: t });
                 }
+            } else if (principalName && principalEmail && principalUsername) {
+                // If no principal exists but details are provided, create one
+                if (!principalPassword) {
+                    const err = new Error('Password is required for a new principal account');
+                    err.statusCode = 400;
+                    throw err;
+                }
+
+                // Check for duplicates
+                const existingUser = await User.findOne({
+                    where: {
+                        [sequelize.Sequelize.Op.or]: [{ email: principalEmail }, { username: principalUsername }]
+                    },
+                    transaction: t
+                });
+
+                if (existingUser) {
+                    const err = new Error('Email or Username is already in use');
+                    err.statusCode = 400;
+                    throw err;
+                }
+
+                const hashedPassword = await bcrypt.hash(principalPassword, 10);
+                const newPrincipal = await User.create({
+                    name: principalName,
+                    email: principalEmail,
+                    username: principalUsername,
+                    password: hashedPassword,
+                    phone: principalPhone || null,
+                    role: 'PRINCIPAL',
+                    branchId: branch.id
+                }, { transaction: t });
+
+                branch.principalId = newPrincipal.id;
+                await branch.save({ transaction: t });
             }
 
             await t.commit();

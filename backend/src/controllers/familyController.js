@@ -14,13 +14,20 @@ exports.searchFamilies = async (req, res) => {
             });
         }
 
+        const whereClause = {
+            [Op.or]: [
+                { fatherName: { [Op.like]: `%${query}%` } },
+                { fatherPhone: { [Op.like]: `%${query}%` } }
+            ]
+        };
+
+        // RBAC: If not ADMIN, force branchId to user's branch
+        if (req.user.role !== 'ADMIN') {
+            whereClause.branchId = req.user.branchId;
+        }
+
         const families = await Family.findAll({
-            where: {
-                [Op.or]: [
-                    { fatherName: { [Op.like]: `%${query}%` } },
-                    { fatherPhone: { [Op.like]: `%${query}%` } }
-                ]
-            },
+            where: whereClause,
             include: [
                 {
                     model: Branch,
@@ -73,8 +80,22 @@ exports.lookupFamilyByPhone = async (req, res) => {
             });
         }
 
+        const whereClause = { fatherPhone: phone };
+
+        // RBAC: If not ADMIN, force branchId to user's branch
+        if (req.user.role !== 'ADMIN') {
+            whereClause.branchId = req.user.branchId;
+        } else if (branchId) {
+            whereClause.branchId = branchId;
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'branchId is required for Admin lookup'
+            });
+        }
+
         const family = await Family.findOne({
-            where: { fatherPhone: phone, branchId: branchId },
+            where: whereClause,
             include: [
                 {
                     model: Student,
@@ -134,6 +155,16 @@ exports.getFamilyStudents = async (req, res) => {
 
         console.log(`Getting students for family ID: ${id}`);
 
+        const family = await Family.findByPk(id);
+        if (!family) {
+            return res.status(404).json({ success: false, message: 'Family not found' });
+        }
+
+        // RBAC: If not ADMIN, check branchId
+        if (req.user.role !== 'ADMIN' && family.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to view this family' });
+        }
+
         const students = await Student.findAll({
             where: { familyId: id },
             include: [
@@ -189,6 +220,11 @@ exports.updateFamily = async (req, res) => {
                 success: false,
                 message: 'Family not found'
             });
+        }
+
+        // RBAC: If not ADMIN, check branchId
+        if (req.user.role !== 'ADMIN' && family.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to update this family' });
         }
 
         // Check if phone number is being updated and if it already exists for another family in the same branch

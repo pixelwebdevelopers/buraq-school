@@ -38,12 +38,10 @@ export default function Login() {
         <div>
             {/* Heading */}
             <div className="mb-5 lg:mb-4">
-                <h2 className="font-display text-2xl font-bold text-text-primary sm:text-3xl">
+                <h2 className="font-display text-2xl font-bold text-text-primary sm:text-3xl text-center">
                     Sign In
                 </h2>
-                <p className="mt-2 text-sm text-text-secondary">
-                    Enter your credentials to access the portal
-                </p>
+
             </div>
 
             {/* Error */}
@@ -84,9 +82,9 @@ export default function Login() {
                         <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary">
                             Password
                         </label>
-                        <Link to="/forgot-password" className="text-xs font-medium text-primary transition-colors hover:text-secondary">
+                        {/* <Link to="/forgot-password" className="text-xs font-medium text-primary transition-colors hover:text-secondary">
                             Forgot Password?
-                        </Link>
+                        </Link> */}
                     </div>
                     <div className="relative">
                         <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-text-muted" />
@@ -112,7 +110,7 @@ export default function Login() {
                 </div>
 
                 {/* Remember Me */}
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                     <input
                         type="checkbox"
                         id="remember"
@@ -121,7 +119,7 @@ export default function Login() {
                     <label htmlFor="remember" className="text-sm text-text-secondary">
                         Remember me
                     </label>
-                </div>
+                </div> */}
 
                 {/* Submit */}
                 <button
@@ -164,17 +162,7 @@ export default function Login() {
                 </p>
             </div>
 
-            {/* Contact */}
-            <p className="mt-4 text-center text-xs text-text-muted">
-                Need help?{' '}
-                <a href="tel:0310-8509645" className="font-medium text-primary hover:text-secondary transition-colors">
-                    0310-8509645
-                </a>{' '}
-                •{' '}
-                <a href="mailto:buraqedn@gmail.com" className="font-medium text-primary hover:text-secondary transition-colors">
-                    buraqedn@gmail.com
-                </a>
-            </p>
+
         </div>
     );
 }

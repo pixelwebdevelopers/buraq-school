@@ -19,7 +19,7 @@ export default function StudentFeeModal({ isOpen, onClose, student }) {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
-    const limit = 10;
+    const limit = 5;
 
     // Generate form state
     const [genMonth, setGenMonth] = useState(new Date().getMonth() + 1);
@@ -119,120 +119,111 @@ export default function StudentFeeModal({ isOpen, onClose, student }) {
     const getStatusBadge = (status) => {
         switch (status) {
             case 'PAID':
-                return <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-wider">PAID</span>;
+                return <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200">CLEARED</span>;
             case 'PARTIAL':
-                return <span className="px-2 py-1 rounded bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider">PARTIAL</span>;
+                return <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-200">PARTIAL</span>;
             default:
-                return <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-[10px] font-black uppercase tracking-wider">PENDING</span>;
+                return <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider border border-rose-200">DUE</span>;
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50 shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-[#4B5EAA] shadow-sm">
-                            <FaFileInvoiceDollar className="text-xl" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                Fee Management: {student.name}
-                            </h2>
-                            <p className="text-xs text-gray-500 font-medium">Roll: {student.referenceNo || 'N/A'} • Class: <span className="capitalize">{student.currentClass}</span></p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 bg-white rounded-full hover:bg-gray-100">
-                        <FaTimes className="text-xl" />
-                    </button>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm transition-all duration-300">
+            <div className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                {/* Unified Header & Controls Section */}
+                <div className="border-b border-slate-100 bg-white px-4 py-4 sm:px-8 sm:py-6 shrink-0">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        {/* Student Info & Balance */}
+                        <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 italic font-black text-xl">
+                                    {student.name.charAt(0)}
+                                </div>
+                                <div className="min-w-0">
+                                    <h2 className="text-xl font-bold text-slate-800 truncate leading-tight">
+                                        {student.name}
+                                    </h2>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                        Roll: {student.referenceNo || 'N/A'} <span className="mx-1 opacity-20">|</span> Class: {student.currentClass}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="h-10 w-[1px] bg-slate-100 hidden sm:block"></div>
 
-                <div className="p-6 flex-1 overflow-y-auto flex flex-col md:flex-row gap-6 bg-gray-50/30">
-                    {/* Left Panel: Creation & Summary */}
-                    <div className="w-full md:w-80 flex flex-col gap-6 shrink-0">
-                        {/* Summary Card */}
-                        <div className="bg-gradient-to-br from-[#4B5EAA] to-indigo-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-400/20 rounded-full blur-xl -ml-10 -mb-10"></div>
-
-                            <h3 className="text-indigo-100 text-[10px] font-bold uppercase tracking-widest mb-1 opacity-80">Total Outstanding</h3>
-                            <div className="text-3xl font-black tracking-tight font-mono">
-                                <span className="text-xl opacity-60 mr-1">Rs.</span>
-                                {totalBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Outstanding</span>
+                                <div className="text-2xl font-black text-slate-900 leading-none">
+                                    <span className="text-indigo-600 mr-1 italic">Rs.</span>
+                                    {totalBalance.toLocaleString()}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Generate Voucher Card */}
-                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
-                            <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600"><FaPlus className="text-xs" /></div>
-                                New Voucher
-                            </h3>
-                            <form onSubmit={handleGenerateVoucher} className="flex flex-col gap-4">
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Billing Month</label>
-                                        <select
-                                            value={genMonth}
-                                            onChange={(e) => setGenMonth(e.target.value)}
-                                            className="w-full text-sm border-gray-200 rounded-lg focus:ring-[#4B5EAA] focus:border-[#4B5EAA] bg-gray-50 font-medium"
-                                        >
-                                            {monthNames.map((name, index) => (
-                                                <option key={index + 1} value={index + 1}>{name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">Year</label>
-                                        <input
-                                            type="number"
-                                            value={genYear}
-                                            onChange={(e) => setGenYear(e.target.value)}
-                                            className="w-full text-sm border-gray-200 rounded-lg focus:ring-[#4B5EAA] focus:border-[#4B5EAA] bg-gray-50 font-mono"
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={generating}
-                                    className="w-full flex items-center justify-center gap-2 py-3 bg-[#4B5EAA] hover:bg-[#3A4A8B] text-white font-bold rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-70"
-                                >
-                                    {generating ? <FaSpinner className="animate-spin" /> : "Generate Voucher"}
-                                </button>
-                                <p className="text-[10px] text-gray-400 text-center leading-tight">
-                                    Voucher will include Monthly, Academy, and Lab fees.
-                                </p>
-                            </form>
+                        {/* Quick Generate Form */}
+                        <div className="flex flex-wrap items-center gap-3 bg-slate-50/80 p-2 rounded-2xl border border-slate-100">
+                            <div className="flex items-center gap-2 px-3 py-1.5">
+                                <FaPlus className="text-indigo-500 text-[10px]" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Billing</span>
+                            </div>
+                            <select
+                                value={genMonth}
+                                onChange={(e) => setGenMonth(e.target.value)}
+                                className="text-xs border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white py-1.5 px-3 font-bold text-slate-700 min-w-[110px]"
+                            >
+                                {monthNames.map((name, index) => (
+                                    <option key={index + 1} value={index + 1}>{name}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                value={genYear}
+                                onChange={(e) => setGenYear(e.target.value)}
+                                className="text-xs border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white py-1.5 px-3 font-bold text-slate-700 w-20"
+                            />
+                            <button
+                                onClick={handleGenerateVoucher}
+                                disabled={generating}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
+                            >
+                                {generating ? <FaSpinner className="animate-spin" /> : "GENERATE"}
+                            </button>
+                            <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+                            <button 
+                                onClick={onClose} 
+                                className="text-slate-400 hover:text-slate-600 transition-all p-2 hover:bg-slate-200/50 rounded-xl"
+                            >
+                                <FaTimes className="text-base" />
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right Panel: List */}
-                    <div className="flex-1 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                            <h3 className="font-bold text-gray-800">Generated Vouchers History</h3>
+                {/* Ledger Content Section */}
+                <div className="flex-1 overflow-y-auto bg-white p-4 sm:p-8">
+                    <div className="flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-full min-h-[500px]">
+                        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                            <h3 className="font-bold text-slate-700 text-sm uppercase tracking-widest">Voucher Archive</h3>
                             {loading && <FaSpinner className="animate-spin text-indigo-500" />}
                         </div>
-                        <div className="flex-1 overflow-x-auto min-h-[400px]">
-                            <table className="w-full text-left text-sm whitespace-nowrap">
-                                <thead className="bg-white border-b border-gray-100 text-[10px] uppercase font-black text-gray-400 tracking-wider">
+                        
+                        <div className="flex-1 overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left text-sm whitespace-nowrap min-w-[750px]">
+                                <thead className="bg-[#F8FAFC] text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-100">
                                     <tr>
-                                        <th className="px-6 py-4 text-center">Month/Year</th>
+                                        <th className="px-8 py-4">Billing Cycle</th>
                                         <th className="px-6 py-4 text-right">Bill Amount</th>
-                                        <th className="px-6 py-4 text-right">Paid</th>
+                                        <th className="px-6 py-4 text-right">Collected</th>
                                         <th className="px-6 py-4 text-right">Balance</th>
                                         <th className="px-6 py-4 text-center">Status</th>
-                                        <th className="px-6 py-4 text-right">Actions</th>
+                                        <th className="px-8 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y divide-slate-50">
                                     {!loading && vouchers.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-20 text-center text-gray-400">
-                                                <div className="flex flex-col items-center">
-                                                    <FaFileInvoiceDollar className="text-4xl mb-4 opacity-10" />
-                                                    <p className="font-medium">No fee records found.</p>
-                                                </div>
+                                            <td colSpan="6" className="px-8 py-32 text-center text-slate-300 font-medium font-bold text-base">
+                                                No fee records found for this student.
                                             </td>
                                         </tr>
                                     ) : (
@@ -242,39 +233,43 @@ export default function StudentFeeModal({ isOpen, onClose, student }) {
                                             const vBal = vTotal - vPaid;
 
                                             return (
-                                                <tr key={v.id} className="hover:bg-indigo-50/30 transition-colors group">
-                                                    <td className="px-6 py-4 font-bold text-gray-800 text-center">
+                                                <tr key={v.id} className="hover:bg-slate-50/80 transition-all duration-150 group">
+                                                    <td className="px-8 py-4 font-bold text-slate-700">
                                                         {monthNames[v.month - 1]} {v.year}
                                                     </td>
-                                                    <td className="px-6 py-4 text-right font-mono text-gray-900 font-bold">Rs. {vTotal.toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-right font-mono text-green-600 font-bold">Rs. {vPaid.toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-right font-mono font-black text-red-500">Rs. {vBal.toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-center">{getStatusBadge(v.status)}</td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <div className="flex items-center justify-end gap-1.5 grayscale group-hover:grayscale-0 transition-all">
+                                                    <td className="px-6 py-4 text-right font-black text-slate-900 tabular-nums">Rs. {vTotal.toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-right font-black text-emerald-600 tabular-nums">Rs. {vPaid.toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-right font-black text-rose-500 tabular-nums">Rs. {vBal.toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        {getStatusBadge(v.status)}
+                                                    </td>
+                                                    <td className="px-8 py-4 text-right">
+                                                        <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                                             <button
                                                                 onClick={() => handleOpenPay(v)}
                                                                 disabled={v.status === 'PAID'}
-                                                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-green-100 text-green-600 hover:bg-green-600 hover:text-white transition-all disabled:opacity-20"
+                                                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-800 hover:text-white rounded-lg text-[10px] font-black transition-all disabled:opacity-20"
                                                                 title="Receive Payment"
                                                             >
-                                                                <FaMoneyBillWave className="text-xs" />
+                                                                <FaMoneyBillWave />
+                                                                PAY
                                                             </button>
                                                             <button
                                                                 onClick={() => handleOpenPrint(v)}
-                                                                className="h-8 w-8 flex items-center justify-center rounded-lg border border-indigo-100 text-indigo-600 hover:bg-[#4B5EAA] hover:text-white transition-all"
-                                                                title="Print Receipt"
+                                                                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-800 hover:text-white rounded-lg text-[10px] font-black transition-all"
+                                                                title="Print Voucher"
                                                             >
-                                                                <FaPrint className="text-xs" />
+                                                                <FaPrint />
+                                                                PRINT
                                                             </button>
                                                             {canDelete && (
                                                                 <button
                                                                     onClick={(e) => handleDeleteVoucher(e, v.id)}
                                                                     disabled={v.status === 'PAID' || v.status === 'PARTIAL'}
-                                                                    className="h-8 w-8 flex items-center justify-center rounded-lg border border-red-100 text-red-500 hover:bg-red-500 hover:text-white transition-all disabled:opacity-20"
-                                                                    title="Delete Voucher"
+                                                                    className="flex items-center justify-center p-2 bg-slate-100 hover:bg-rose-500 hover:text-white rounded-lg text-rose-500 transition-all disabled:opacity-20"
+                                                                    title="Delete"
                                                                 >
-                                                                    <FaTrashAlt className="text-xs" />
+                                                                    <FaTrashAlt />
                                                                 </button>
                                                             )}
                                                         </div>
@@ -286,14 +281,15 @@ export default function StudentFeeModal({ isOpen, onClose, student }) {
                                 </tbody>
                             </table>
                         </div>
-                        {/* Standard Pagination component */}
-                        <div className="border-t border-gray-100">
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={pagination.totalPages}
-                                onPageChange={fetchFees}
-                                totalCount={pagination.totalCount}
-                            />
+                        
+                        <div className="px-8 py-4 border-t border-slate-50 bg-[#F8FAFC] flex flex-col sm:flex-row items-center justify-center gap-4">
+                            <div className="scale-90 sm:scale-100">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={pagination.totalPages}
+                                    onPageChange={fetchFees}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

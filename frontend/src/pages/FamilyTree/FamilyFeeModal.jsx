@@ -3,12 +3,17 @@ import { FaTimes, FaFileInvoiceDollar, FaPrint, FaMoneyBillWave, FaSpinner, FaPl
 import feeService from '@/services/feeService';
 import PayFamilyFeeModal from './PayFamilyFeeModal';
 import PrintFamilyVoucher from './PrintFamilyVoucher';
+import Pagination from '@/components/common/Pagination';
 
 export default function FamilyFeeModal({ isOpen, onClose, family }) {
     const [history, setHistory] = useState([]);
     const [totalBalance, setTotalBalance] = useState(0);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
+    
+    // Pagination state
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalPages: 1, totalCount: 0 });
 
     // Generate form state
     const [genMonth, setGenMonth] = useState(new Date().getMonth() + 1);
@@ -25,17 +30,18 @@ export default function FamilyFeeModal({ isOpen, onClose, family }) {
         if (!family) return;
         setLoading(true);
         try {
-            const res = await feeService.getFamilyFees(family.id);
+            const res = await feeService.getFamilyFees(family.id, { page, limit: 5 });
             if (res.success) {
                 setHistory(res.data.history);
                 setTotalBalance(res.data.totalBalance);
+                setPagination(res.data.pagination || { totalPages: 1, totalCount: res.data.history.length });
             }
         } catch (error) {
             console.error("Failed to fetch family fees:", error);
         } finally {
             setLoading(false);
         }
-    }, [family]);
+    }, [family, page]);
 
     useEffect(() => {
         if (isOpen && family) {
@@ -87,142 +93,146 @@ export default function FamilyFeeModal({ isOpen, onClose, family }) {
 
     const getGroupStatus = (vouchers) => {
         const allPaid = vouchers.every(v => v.status === 'PAID');
-        if (allPaid) return <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-bold font-mono">ALL PAID</span>;
+        if (allPaid) return <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200">CLEARED</span>;
 
         const anyPaid = vouchers.some(v => v.status === 'PAID' || v.status === 'PARTIAL');
-        if (anyPaid) return <span className="px-2 py-1 rounded bg-amber-100 text-amber-700 text-xs font-bold font-mono">PARTIAL COLLECTIVE</span>;
+        if (anyPaid) return <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-wider border border-amber-200">PARTIAL</span>;
 
-        return <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-bold font-mono">PENDING ALL</span>;
+        return <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider border border-rose-200">DUE</span>;
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div className="w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 bg-gray-50/50 shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 shadow-sm">
-                            <FaFileInvoiceDollar className="text-xl" />
-                        </div>
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                Family Fee Management: {family.fatherName}
-                            </h2>
-                            <p className="text-xs text-gray-500 font-medium">Family ID: {family.id} • Collective sibling account</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-2 bg-white rounded-full hover:bg-gray-100">
-                        <FaTimes className="text-xl" />
-                    </button>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-2 sm:p-4 backdrop-blur-sm transition-all duration-300">
+            <div className="w-full max-w-6xl max-h-[95vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+                {/* Unified Header & Controls Section */}
+                <div className="border-b border-slate-100 bg-white px-4 py-4 sm:px-8 sm:py-6 shrink-0">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        {/* Family Info & Balance */}
+                        <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 italic font-black text-xl">
+                                    F
+                                </div>
+                                <div className="min-w-0">
+                                    <h2 className="text-xl font-bold text-slate-800 truncate leading-tight">
+                                        {family.fatherName}
+                                    </h2>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                        Ledger ID: {family.id}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div className="h-10 w-[1px] bg-slate-100 hidden sm:block"></div>
 
-                <div className="p-6 flex-1 overflow-y-auto flex flex-col md:flex-row gap-6 bg-gray-50/30">
-                    {/* Left Panel */}
-                    <div className="w-full md:w-1/3 flex flex-col gap-6 shrink-0">
-                        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                            <h3 className="text-amber-100 text-sm font-semibold uppercase tracking-wider mb-2">Collective Balance</h3>
-                            <div className="text-4xl font-black tracking-tight font-mono">
-                                <span>Rs.</span> {totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Due Balance</span>
+                                <div className="text-2xl font-black text-slate-900 leading-none">
+                                    <span className="text-indigo-600 mr-1 italic">Rs.</span>
+                                    {totalBalance.toLocaleString()}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm relative">
-                            <h3 className="text-gray-800 font-bold mb-4 flex items-center gap-2">
-                                <FaPlus className="text-amber-600" />
-                                Bulk Generate (Siblings)
-                            </h3>
-                            <form onSubmit={handleGenerateVouchers} className="flex flex-col gap-4">
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Month</label>
-                                        <select
-                                            value={genMonth}
-                                            onChange={(e) => setGenMonth(e.target.value)}
-                                            className="w-full text-sm border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 bg-gray-50"
-                                        >
-                                            {monthNames.map((name, index) => (
-                                                <option key={index + 1} value={index + 1}>{name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Year</label>
-                                        <input
-                                            type="number"
-                                            value={genYear}
-                                            onChange={(e) => setGenYear(e.target.value)}
-                                            className="w-full text-sm border-gray-200 rounded-lg focus:ring-amber-500 focus:border-amber-500 bg-gray-50"
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={generating}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
-                                >
-                                    {generating ? <FaSpinner className="animate-spin" /> : "Generate for All Siblings"}
-                                </button>
-                                <p className="text-[10px] text-gray-400 text-center leading-tight">
-                                    Generates vouchers for all active siblings for the selected month. Existing vouchers will be skipped.
-                                </p>
-                            </form>
+                        {/* Quick Generate Form */}
+                        <div className="flex flex-wrap items-center gap-3 bg-slate-50/80 p-2 rounded-2xl border border-slate-100">
+                            <div className="flex items-center gap-2 px-3 py-1.5">
+                                <FaPlus className="text-indigo-500 text-[10px]" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Generate</span>
+                            </div>
+                            <select
+                                value={genMonth}
+                                onChange={(e) => setGenMonth(e.target.value)}
+                                className="text-xs border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white py-1.5 px-3 font-bold text-slate-700 min-w-[110px]"
+                            >
+                                {monthNames.map((name, index) => (
+                                    <option key={index + 1} value={index + 1}>{name}</option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                value={genYear}
+                                onChange={(e) => setGenYear(e.target.value)}
+                                className="text-xs border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-white py-1.5 px-3 font-bold text-slate-700 w-20"
+                            />
+                            <button
+                                onClick={handleGenerateVouchers}
+                                disabled={generating}
+                                className="flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
+                            >
+                                {generating ? <FaSpinner className="animate-spin" /> : "PROCESS"}
+                            </button>
+                            <div className="h-8 w-[1px] bg-slate-200 mx-1 hidden sm:block"></div>
+                            <button 
+                                onClick={onClose} 
+                                className="text-slate-400 hover:text-slate-600 transition-all p-2 hover:bg-slate-200/50 rounded-xl"
+                            >
+                                <FaTimes className="text-base" />
+                            </button>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right Panel */}
-                    <div className="w-full md:w-2/3 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
-                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                            <h3 className="font-bold text-gray-800">Family Fee History</h3>
-                            {loading && <FaSpinner className="animate-spin text-gray-400" />}
+                {/* Ledger Content Section */}
+                <div className="flex-1 overflow-y-auto bg-white p-4 sm:p-8">
+                    <div className="flex flex-col bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-full min-h-[500px]">
+                        <div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+                            <h3 className="font-bold text-slate-700 text-sm uppercase tracking-widest">Financial Timeline</h3>
+                            {loading && <FaSpinner className="animate-spin text-indigo-500" />}
                         </div>
-                        <div className="flex-1 overflow-x-auto">
-                            <table className="w-full text-left text-sm whitespace-nowrap">
-                                <thead className="bg-white border-b border-gray-100 text-xs uppercase font-semibold text-gray-500">
+                        
+                        <div className="flex-1 overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left text-sm whitespace-nowrap min-w-[750px]">
+                                <thead className="bg-[#F8FAFC] text-[10px] uppercase font-black tracking-widest text-slate-400 border-b border-slate-100">
                                     <tr>
-                                        <th className="px-4 py-3">Month/Year</th>
-                                        <th className="px-4 py-3">Siblings</th>
-                                        <th className="px-4 py-3">Collective Total</th>
-                                        <th className="px-4 py-3">Collective Paid</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Actions</th>
+                                        <th className="px-8 py-4">Statement Period</th>
+                                        <th className="px-6 py-4">Count</th>
+                                        <th className="px-6 py-4">Gross Bill</th>
+                                        <th className="px-6 py-4">Collected</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-8 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y divide-slate-50">
                                     {!loading && history.length === 0 ? (
                                         <tr>
-                                            <td colSpan="6" className="px-6 py-12 text-center text-gray-400 text-sm">
-                                                No collective logs found. Generate some vouchers above.
+                                            <td colSpan="6" className="px-8 py-32 text-center text-slate-300 font-medium">
+                                                No financial history available for this family account.
                                             </td>
                                         </tr>
                                     ) : (
                                         history.map(group => (
-                                            <tr key={`${group.month}-${group.year}`} className="hover:bg-gray-50/50 transition-colors group">
-                                                <td className="px-4 py-3 font-bold text-gray-800">
+                                            <tr key={`${group.month}-${group.year}`} className="hover:bg-slate-50/80 transition-all duration-150 group">
+                                                <td className="px-8 py-4 font-bold text-slate-700">
                                                     {monthNames[group.month - 1]} {group.year}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-indigo-100">
-                                                        <FaUsers className="text-[8px]" /> {group.vouchers.length}
+                                                <td className="px-6 py-4">
+                                                    <span className="inline-flex items-center justify-center h-6 w-6 bg-slate-100 text-slate-600 rounded-lg text-xs font-black border border-slate-200/50">
+                                                        {group.vouchers.length}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 font-mono text-gray-600">Rs. {group.totalAmount}</td>
-                                                <td className="px-4 py-3 font-mono text-green-600">Rs. {group.totalPaid}</td>
-                                                <td className="px-4 py-3">{getGroupStatus(group.vouchers)}</td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <div className="flex items-center justify-end gap-2 text-lg">
+                                                <td className="px-6 py-4 font-black text-slate-700 tabular-nums">Rs. {group.totalAmount.toLocaleString()}</td>
+                                                <td className="px-6 py-4 font-black text-indigo-600 tabular-nums">Rs. {group.totalPaid.toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-[10px] font-black tracking-widest">
+                                                    {getGroupStatus(group.vouchers)}
+                                                </td>
+                                                <td className="px-8 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             onClick={() => handleOpenPay(group)}
-                                                            className="p-1 text-green-600 hover:text-green-700 transition-colors"
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-800 hover:text-white rounded-lg text-[10px] font-black transition-all"
                                                             title="Receive Payment"
                                                         >
                                                             <FaMoneyBillWave />
+                                                            RECEIVE
                                                         </button>
                                                         <button
                                                             onClick={() => handleOpenPrint(group)}
-                                                            className="p-1 text-amber-600 hover:text-amber-700 transition-colors"
-                                                            title="Print Collective Voucher"
+                                                            className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-800 hover:text-white rounded-lg text-[10px] font-black transition-all"
+                                                            title="Print Statement"
                                                         >
                                                             <FaPrint />
+                                                            PRINT
                                                         </button>
                                                     </div>
                                                 </td>
@@ -231,6 +241,18 @@ export default function FamilyFeeModal({ isOpen, onClose, family }) {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <div className="px-8 py-4 border-t border-slate-50 bg-[#F8FAFC] flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Collective Ledger Sync</span>
+                            <div className="scale-90 sm:scale-100">
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={pagination.totalPages}
+                                    onPageChange={setPage}
+                                    totalCount={pagination.totalCount}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>

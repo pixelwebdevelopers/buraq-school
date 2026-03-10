@@ -216,17 +216,6 @@ export default function Students() {
                 </div>
             </div>
 
-            {/* Pagination Controls Top (Optional but good for UX) */}
-            {pagination.totalPages > 1 && (
-                <div className="flex justify-end">
-                    <Pagination
-                        currentPage={page}
-                        totalPages={pagination.totalPages}
-                        onPageChange={setPage}
-                        totalCount={pagination.totalCount}
-                    />
-                </div>
-            )}
 
             {error && (
                 <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500 border border-red-200">
@@ -241,7 +230,6 @@ export default function Students() {
                         <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-semibold uppercase text-xs">
                             <tr>
                                 <th className="px-6 py-4">Student</th>
-                                <th className="px-6 py-4">Admission No.</th>
                                 <th className="px-6 py-4">Class</th>
                                 <th className="px-6 py-4">Family (Father)</th>
                                 {isAdmin && <th className="px-6 py-4">Branch</th>}
@@ -276,12 +264,6 @@ export default function Students() {
                                                     {student.name.charAt(0)}
                                                 </div>
                                                 <span className="font-medium text-gray-800">{student.name}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-2 text-gray-600 font-mono text-xs">
-                                                <FaIdCard className="text-[#4B5EAA]/60" />
-                                                {student.admissionNo}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

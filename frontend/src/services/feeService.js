@@ -38,8 +38,8 @@ const feeService = {
      * @param {number} familyId 
      * @returns {Promise<Object>}
      */
-    getFamilyFees: async (familyId) => {
-        const response = await api.get(`/fees/family/${familyId}`);
+    getFamilyFees: async (familyId, params = {}) => {
+        const response = await api.get(`/fees/family/${familyId}`, { params });
         return response.data;
     },
 

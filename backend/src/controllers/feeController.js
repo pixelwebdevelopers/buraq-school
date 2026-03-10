@@ -13,6 +13,11 @@ exports.getStudentFees = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Student not found.' });
         }
 
+        // Branch-scoping for STAFF/PRINCIPAL
+        if (req.user.role !== 'ADMIN' && student.branchId !== req.user.branchId) {
+            return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
+        }
+
         const { count, rows } = await FeeLog.findAndCountAll({
             where: { studentId },
             order: [['year', 'DESC'], ['month', 'DESC'], ['createdAt', 'DESC']],
@@ -211,6 +216,13 @@ exports.getFamilyFees = async (req, res) => {
             return b.month - a.month;
         });
 
+        // Pagination for Grouped Data
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const paginatedHistory = groupedArray.slice(startIndex, endIndex);
+
         // Calculate total collective balance
         const allPendingLogs = await FeeLog.findAll({
             where: {
@@ -226,8 +238,14 @@ exports.getFamilyFees = async (req, res) => {
         res.status(200).json({
             success: true,
             data: {
-                history: groupedArray,
-                totalBalance
+                history: paginatedHistory,
+                totalBalance,
+                pagination: {
+                    totalCount: groupedArray.length,
+                    totalPages: Math.ceil(groupedArray.length / limit),
+                    currentPage: page,
+                    limit
+                }
             }
         });
     } catch (error) {

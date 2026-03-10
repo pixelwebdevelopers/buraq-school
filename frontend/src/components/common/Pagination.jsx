@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-export default function Pagination({ currentPage, totalPages, onPageChange, totalCount }) {
+export default function Pagination({ currentPage, totalPages, onPageChange }) {
     if (totalPages <= 1) return null;
 
     const pages = [];
@@ -37,12 +37,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange, tota
                 </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                <div>
-                    <p className="text-sm text-gray-700">
-                        Showing page <span className="font-bold text-[#4B5EAA]">{currentPage}</span> of <span className="font-bold">{totalPages}</span>
-                        {totalCount && <span className="ml-1 font-medium text-gray-500">({totalCount} items total)</span>}
-                    </p>
-                </div>
+                <div></div>
                 <div>
                     <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                         <button

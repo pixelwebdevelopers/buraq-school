@@ -10,6 +10,7 @@ import {
     FaChevronRight,
 } from 'react-icons/fa';
 import logo from '@/assets/images/logo.png';
+import pixelLogo from '@/assets/images/pixel-web-dev-logo.png';
 
 const QUICK_LINKS = [
     { label: 'Home', href: '#home' },
@@ -166,10 +167,20 @@ export default function Footer() {
                     <p className="text-xs text-white/40">
                         &copy; {new Date().getFullYear()} Buraq School & College. All rights reserved.
                     </p>
-                    <p className="text-xs text-white/40">
-                        Designed by{' '}
-                        <span className="font-semibold text-secondary/80">Pixel Web Developers</span>
-                    </p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs text-white/40">Developed by</p>
+                        <a
+                            href="https://pixelwebdevelopers.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 group"
+                        >
+                            <img src={pixelLogo} alt="Pixel Web Developers" className="h-5 w-auto rounded-sm group-hover:opacity-80 transition-opacity" />
+                            <span className="text-xs font-semibold text-white  transition-colors">
+                                Pixel Web Developers
+                            </span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>
