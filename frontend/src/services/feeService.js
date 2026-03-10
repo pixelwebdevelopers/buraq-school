@@ -51,6 +51,36 @@ const feeService = {
     generateFamilyVouchers: async (data) => {
         const response = await api.post('/fees/family/generate', data);
         return response.data;
+    },
+
+    /**
+     * Bulk generate vouchers for a class/branch
+     * @param {Object} data - { branchId, currentClass, month, year }
+     * @returns {Promise<Object>}
+     */
+    bulkGenerateVouchers: async (data) => {
+        const response = await api.post('/fees/bulk-generate', data);
+        return response.data;
+    },
+
+    /**
+     * Get bulk vouchers for viewing/printing
+     * @param {Object} params - { branchId, currentClass, month, year }
+     * @returns {Promise<Object>}
+     */
+    getBulkFees: async (params) => {
+        const response = await api.get('/fees/bulk', { params });
+        return response.data;
+    },
+
+    /**
+     * Get report of students with pending balances
+     * @param {Object} params - { branchId, currentClass }
+     * @returns {Promise<Object>}
+     */
+    getPendingFeesReport: async (params) => {
+        const response = await api.get('/fees/report/pending', { params });
+        return response.data;
     }
 };
 

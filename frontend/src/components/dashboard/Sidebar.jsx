@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
     FaHome, FaUserGraduate, FaMoneyBillWave, FaCog, FaAngleDoubleLeft, FaAngleDoubleRight,
-    FaMapMarkerAlt, FaGlobe
+    FaMapMarkerAlt, FaGlobe, FaChartBar
 } from 'react-icons/fa';
 import logo from '@/assets/images/logo.png';
 
@@ -22,6 +22,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { name: 'Branches', path: '/dashboard/branches', icon: <FaMapMarkerAlt />, roles: ['ADMIN'] },
         { name: 'Family Tree', path: '/dashboard/family-tree', icon: <FaGlobe />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
         { name: 'Fees', path: '/dashboard/fees', icon: <FaMoneyBillWave />, roles: ['ADMIN', 'PRINCIPAL'] },
+        { name: 'Reports', path: '/dashboard/reports', icon: <FaChartBar />, roles: ['ADMIN', 'PRINCIPAL'] },
         { name: 'Settings', path: '/dashboard/settings', icon: <FaCog />, roles: ['ADMIN'] },
     ];
 

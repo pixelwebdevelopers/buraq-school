@@ -1,4 +1,4 @@
-const { FeeLog, Student, Family } = require('../models');
+const { FeeLog, Student, Family, Branch } = require('../models');
 const { Op } = require('sequelize');
 
 exports.getStudentFees = async (req, res) => {
@@ -280,5 +280,188 @@ exports.generateFamilyVouchers = async (req, res) => {
     } catch (error) {
         console.error('Error generating family vouchers:', error);
         res.status(500).json({ success: false, message: 'Error generating family vouchers.' });
+    }
+};
+
+exports.bulkGenerateVouchers = async (req, res) => {
+    try {
+        const { branchId, currentClass, month, year } = req.body;
+
+        if (!branchId || !month || !year) {
+            return res.status(400).json({ success: false, message: 'Branch, month, and year are required.' });
+        }
+
+        const whereClause = { branchId, status: 'ACTIVE' };
+        if (currentClass) {
+            whereClause.currentClass = currentClass;
+        }
+
+        const students = await Student.findAll({ where: whereClause });
+
+        if (students.length === 0) {
+            return res.status(400).json({ success: false, message: 'No active students found for the selected criteria.' });
+        }
+
+        const results = { generated: 0, skipped: 0 };
+
+        for (const student of students) {
+            const existing = await FeeLog.findOne({
+                where: { studentId: student.id, month, year }
+            });
+
+            if (existing) {
+                results.skipped++;
+                continue;
+            }
+
+            const monthlyFee = parseFloat(student.monthlyFee || 0);
+            const academyFee = parseFloat(student.academyFee || 0);
+            const labMiscFee = parseFloat(student.labMiscFee || 0);
+            const totalAmount = monthlyFee + academyFee + labMiscFee;
+
+            if (totalAmount > 0) {
+                await FeeLog.create({
+                    familyId: student.familyId,
+                    studentId: student.id,
+                    month,
+                    year,
+                    monthlyFee,
+                    academyFee,
+                    labMiscFee,
+                    amount: totalAmount,
+                    paidAmount: 0,
+                    status: 'PENDING',
+                    type: 'monthly_voucher',
+                    description: `Monthly Fee Voucher for ${month}/${year}`
+                });
+                results.generated++;
+            } else {
+                results.skipped++;
+            }
+        }
+
+        res.status(201).json({
+            success: true,
+            message: `Vouchers processed: ${results.generated} generated, ${results.skipped} skipped.`,
+            data: results
+        });
+    } catch (error) {
+        console.error('Error in bulk generation:', error);
+        res.status(500).json({ success: false, message: 'Error in bulk voucher generation.' });
+    }
+};
+
+exports.getBulkFees = async (req, res) => {
+    try {
+        const { branchId, currentClass, month, year } = req.query;
+
+        if (!branchId || !month || !year) {
+            return res.status(400).json({ success: false, message: 'Branch, month, and year are required.' });
+        }
+
+        const whereClause = { month, year };
+        const studentWhere = { branchId };
+        if (currentClass) {
+            studentWhere.currentClass = currentClass;
+        }
+
+        const feeLogs = await FeeLog.findAll({
+            where: whereClause,
+            include: [
+                {
+                    model: Student,
+                    where: studentWhere,
+                    attributes: ['id', 'name', 'currentClass', 'section', 'admissionNo', 'referenceNo']
+                },
+                {
+                    model: Family,
+                    attributes: ['id', 'fatherName', 'fatherPhone']
+                }
+            ],
+            order: [[Student, 'name', 'ASC']]
+        });
+
+        res.status(200).json({
+            success: true,
+            data: feeLogs
+        });
+    } catch (error) {
+        console.error('Error fetching bulk fees:', error);
+        res.status(500).json({ success: false, message: 'Error fetching vouchers.' });
+    }
+};
+
+exports.getPendingFeesReport = async (req, res) => {
+    try {
+        const { branchId, currentClass, month, year, minBalance } = req.query;
+
+        const studentWhere = { status: 'ACTIVE' };
+        if (branchId) {
+            studentWhere.branchId = branchId;
+        }
+        if (currentClass) {
+            studentWhere.currentClass = currentClass;
+        }
+
+        const feeLogWhere = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
+        if (month) feeLogWhere.month = month;
+        if (year) feeLogWhere.year = year;
+
+        const students = await Student.findAll({
+            where: studentWhere,
+            include: [
+                {
+                    model: Family,
+                    attributes: ['id', 'fatherName', 'fatherPhone']
+                },
+                {
+                    model: Branch,
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: FeeLog,
+                    where: feeLogWhere,
+                    required: true // We only want students who have pending logs matching criteria
+                }
+            ]
+        });
+
+        const report = students.map(student => {
+            const pendingLogs = student.FeeLogs || [];
+            const outstandingBalance = pendingLogs.reduce((acc, log) => {
+                return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+            }, 0);
+
+            return {
+                id: student.id,
+                name: student.name,
+                admissionNo: student.admissionNo,
+                currentClass: student.currentClass,
+                section: student.section,
+                branch: student.Branch?.name,
+                fatherName: student.Family?.fatherName,
+                fatherPhone: student.Family?.fatherPhone,
+                pendingVouchers: pendingLogs.length,
+                outstandingBalance
+            };
+        });
+
+        // Filter by minBalance if provided
+        let filteredReport = report;
+        if (minBalance) {
+            const min = parseFloat(minBalance);
+            filteredReport = report.filter(item => item.outstandingBalance >= min);
+        }
+
+        // Sort by balance descending
+        filteredReport.sort((a, b) => b.outstandingBalance - a.outstandingBalance);
+
+        res.status(200).json({
+            success: true,
+            data: filteredReport
+        });
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ success: false, message: 'Error generating pending fees report.' });
     }
 };

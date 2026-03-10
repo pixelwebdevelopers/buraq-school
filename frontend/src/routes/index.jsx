@@ -17,6 +17,9 @@ import ResetPassword from '@/pages/ResetPassword';
 import Branches from '@/pages/Branches';
 import Students from '@/pages/Students';
 import FamilyTree from '@/pages/FamilyTree';
+import Fees from '@/pages/Fees';
+import ReportsHub from '@/pages/Reports';
+import PendingFeesReport from '@/pages/Reports/PendingFees';
 
 /**
  * Application route configuration.
@@ -57,6 +60,14 @@ const router = createBrowserRouter([
             { path: 'branches', element: <Branches /> },
             { path: 'students', element: <Students /> },
             { path: 'family-tree', element: <FamilyTree /> },
+            { path: 'fees', element: <Fees /> },
+            {
+                path: 'reports',
+                children: [
+                    { index: true, element: <ReportsHub /> },
+                    { path: 'pending-fees', element: <PendingFeesReport /> }
+                ]
+            },
         ],
     },
     {

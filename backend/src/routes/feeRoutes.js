@@ -19,5 +19,10 @@ router.put('/:id/pay', feeController.payVoucher);
 router.get('/family/:familyId', feeController.getFamilyFees);
 router.post('/family/generate', feeController.generateFamilyVouchers);
 
+// Bulk and Reporting routes
+router.post('/bulk-generate', feeController.bulkGenerateVouchers);
+router.get('/bulk', feeController.getBulkFees);
+router.get('/report/pending', feeController.getPendingFeesReport);
+
 
 module.exports = router;
