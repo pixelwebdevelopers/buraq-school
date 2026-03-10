@@ -15,4 +15,9 @@ router.post('/generate', feeController.generateVoucher);
 // PUT /api/fees/:id/pay
 router.put('/:id/pay', feeController.payVoucher);
 
+// Family-level fee routes
+router.get('/family/:familyId', feeController.getFamilyFees);
+router.post('/family/generate', feeController.generateFamilyVouchers);
+
+
 module.exports = router;

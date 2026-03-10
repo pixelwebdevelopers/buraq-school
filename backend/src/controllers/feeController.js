@@ -149,3 +149,136 @@ exports.payVoucher = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error updating payment.' });
     }
 };
+
+exports.getFamilyFees = async (req, res) => {
+    try {
+        const { familyId } = req.params;
+
+        // Verify family exists
+        const family = await Family.findByPk(familyId);
+        if (!family) {
+            return res.status(404).json({ success: false, message: 'Family not found.' });
+        }
+
+        // Fetch all fee logs for all students in this family
+        const feeLogs = await FeeLog.findAll({
+            where: { familyId },
+            include: [{
+                model: Student,
+                attributes: ['id', 'name', 'currentClass', 'section', 'referenceNo']
+            }],
+            order: [['year', 'DESC'], ['month', 'DESC'], ['createdAt', 'DESC']]
+        });
+
+        // Group by Month and Year
+        const grouped = {};
+        feeLogs.forEach(log => {
+            const key = `${log.month}-${log.year}`;
+            if (!grouped[key]) {
+                grouped[key] = {
+                    month: log.month,
+                    year: log.year,
+                    totalAmount: 0,
+                    totalPaid: 0,
+                    vouchers: []
+                };
+            }
+            grouped[key].vouchers.push(log);
+            grouped[key].totalAmount += parseFloat(log.amount);
+            grouped[key].totalPaid += parseFloat(log.paidAmount || 0);
+        });
+
+        const groupedArray = Object.values(grouped).sort((a, b) => {
+            if (a.year !== b.year) return b.year - a.year;
+            return b.month - a.month;
+        });
+
+        // Calculate total collective balance
+        const allPendingLogs = await FeeLog.findAll({
+            where: {
+                familyId,
+                status: { [Op.in]: ['PENDING', 'PARTIAL'] }
+            }
+        });
+
+        const totalBalance = allPendingLogs.reduce((acc, log) => {
+            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+        }, 0);
+
+        res.status(200).json({
+            success: true,
+            data: {
+                history: groupedArray,
+                totalBalance
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching family fees:', error);
+        res.status(500).json({ success: false, message: 'Error fetching family fees.' });
+    }
+};
+
+exports.generateFamilyVouchers = async (req, res) => {
+    try {
+        const { familyId, month, year } = req.body;
+
+        const students = await Student.findAll({
+            where: { familyId, status: 'ACTIVE' }
+        });
+
+        if (students.length === 0) {
+            return res.status(400).json({ success: false, message: 'No active students found in this family.' });
+        }
+
+        const results = {
+            generated: [],
+            skipped: []
+        };
+
+        for (const student of students) {
+            // Check if voucher already exists
+            const existing = await FeeLog.findOne({
+                where: { studentId: student.id, month, year }
+            });
+
+            if (existing) {
+                results.skipped.push({ studentId: student.id, name: student.name, reason: 'Already exists' });
+                continue;
+            }
+
+            const monthlyFee = parseFloat(student.monthlyFee || 0);
+            const academyFee = parseFloat(student.academyFee || 0);
+            const labMiscFee = parseFloat(student.labMiscFee || 0);
+            const totalAmount = monthlyFee + academyFee + labMiscFee;
+
+            if (totalAmount > 0) {
+                const voucher = await FeeLog.create({
+                    familyId,
+                    studentId: student.id,
+                    month,
+                    year,
+                    monthlyFee,
+                    academyFee,
+                    labMiscFee,
+                    amount: totalAmount,
+                    paidAmount: 0,
+                    status: 'PENDING',
+                    type: 'monthly_voucher',
+                    description: `Monthly Fee Voucher for ${month}/${year}`
+                });
+                results.generated.push(voucher);
+            } else {
+                results.skipped.push({ studentId: student.id, name: student.name, reason: 'No fees assigned' });
+            }
+        }
+
+        res.status(201).json({
+            success: true,
+            message: `Processed vouchers: ${results.generated.length} generated, ${results.skipped.length} skipped.`,
+            data: results
+        });
+    } catch (error) {
+        console.error('Error generating family vouchers:', error);
+        res.status(500).json({ success: false, message: 'Error generating family vouchers.' });
+    }
+};

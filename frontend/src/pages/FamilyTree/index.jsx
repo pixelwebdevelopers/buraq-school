@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { FaSearch, FaUserGraduate, FaPhoneAlt, FaUsers, FaMapMarkerAlt, FaTimes, FaIdCard, FaBuilding, FaEdit, FaSave } from 'react-icons/fa';
+import { FaSearch, FaUserGraduate, FaPhoneAlt, FaUsers, FaMapMarkerAlt, FaTimes, FaIdCard, FaBuilding, FaEdit, FaSave, FaFileInvoiceDollar, FaChevronDown } from 'react-icons/fa';
 import familyService from '@/services/familyService';
+import FamilyFeeModal from './FamilyFeeModal';
+
 
 export default function FamilyTree() {
     const [query, setQuery] = useState('');
@@ -11,7 +13,10 @@ export default function FamilyTree() {
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
+    const [activeDropdown, setActiveDropdown] = useState(null);
     const [familyToEdit, setFamilyToEdit] = useState(null);
+
     const [editForm, setEditForm] = useState({ fatherName: '', fatherPhone: '', fatherOccupation: '' });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -78,7 +83,28 @@ export default function FamilyTree() {
             fatherOccupation: family.fatherOccupation || ''
         });
         setIsEditModalOpen(true);
+        setActiveDropdown(null);
     };
+
+    const handleViewFees = (family) => {
+        setSelectedFamily(family);
+        setIsFeeModalOpen(true);
+        setActiveDropdown(null);
+    };
+
+    const handleViewStudentsFromDropdown = async (family) => {
+        await handleViewStudents(family);
+        setActiveDropdown(null);
+    };
+
+    const toggleDropdown = (familyId) => {
+        if (activeDropdown === familyId) {
+            setActiveDropdown(null);
+        } else {
+            setActiveDropdown(familyId);
+        }
+    };
+
 
     const handleSaveFamily = async (e) => {
         e.preventDefault();
@@ -160,13 +186,15 @@ export default function FamilyTree() {
             </div>
 
             {/* Results */}
-            <div className="bg-white border rounded-xl shadow-sm border-gray-200 overflow-hidden">
+            <div className="bg-white border rounded-xl shadow-sm border-gray-200">
+
                 <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50">
                     <h3 className="font-semibold text-gray-800">Search Results</h3>
                 </div>
 
                 {families.length > 0 ? (
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto min-h-[350px] pb-48">
+
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="text-xs text-gray-500 font-semibold uppercase bg-gray-100/50 border-b border-gray-200">
                                 <tr>
@@ -203,21 +231,48 @@ export default function FamilyTree() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className="flex justify-center gap-2">
+                                            <div className="relative inline-block text-left">
                                                 <button
-                                                    onClick={() => handleViewStudents(family)}
-                                                    className="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:border-[#4B5EAA] hover:text-[#4B5EAA] text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm transition-all text-xs"
+                                                    onClick={() => toggleDropdown(family.id)}
+                                                    className="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-[#4B5EAA] hover:text-[#4B5EAA] text-gray-700 font-bold py-1.5 px-4 rounded-lg shadow-sm transition-all text-xs"
                                                 >
-                                                    <FaUsers /> Students
+                                                    Actions <FaChevronDown className={`transition-transform duration-200 ${activeDropdown === family.id ? 'rotate-180' : ''}`} />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleEditFamily(family)}
-                                                    className="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:border-amber-500 hover:text-amber-600 text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm transition-all text-xs"
-                                                >
-                                                    <FaEdit /> Edit
-                                                </button>
+
+                                                {activeDropdown === family.id && (
+                                                    <>
+                                                        <div
+                                                            className="fixed inset-0 z-10"
+                                                            onClick={() => setActiveDropdown(null)}
+                                                        ></div>
+                                                        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white shadow-xl border border-gray-100 ring-1 ring-black ring-opacity-5 z-20 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                            <div className="py-1 text-left relative shadow-2xl">
+                                                                <button
+                                                                    onClick={() => handleViewStudentsFromDropdown(family)}
+                                                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-indigo-50 hover:text-[#4B5EAA] transition-colors"
+                                                                >
+                                                                    <FaUsers className="text-gray-400" /> View Students
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleViewFees(family)}
+                                                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                                                                >
+                                                                    <FaFileInvoiceDollar className="text-gray-400" /> Family Fees
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleEditFamily(family)}
+                                                                    className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border-t border-gray-50 mt-1 transition-colors"
+                                                                >
+                                                                    <FaEdit className="text-gray-400" /> Edit Family
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
+
+
                                     </tr>
                                 ))}
                             </tbody>
@@ -406,6 +461,16 @@ export default function FamilyTree() {
                     </div>
                 </div>
             )}
+            {/* Family Fees Modal */}
+            <FamilyFeeModal
+                isOpen={isFeeModalOpen}
+                onClose={() => {
+                    setIsFeeModalOpen(false);
+                    setSelectedFamily(null);
+                }}
+                family={selectedFamily}
+            />
         </div>
     );
 }
+
