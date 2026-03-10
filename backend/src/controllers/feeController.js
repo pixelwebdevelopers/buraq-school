@@ -457,7 +457,12 @@ exports.getBulkFees = async (req, res) => {
 
 exports.getPendingFeesReport = async (req, res) => {
     try {
-        const { branchId, currentClass, month, year, minBalance } = req.query;
+        let { branchId, currentClass, month, year, minBalance } = req.query;
+
+        // Force branch scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
 
         const studentWhere = { status: 'ACTIVE' };
         if (branchId) {
@@ -485,7 +490,7 @@ exports.getPendingFeesReport = async (req, res) => {
                 {
                     model: FeeLog,
                     where: feeLogWhere,
-                    required: true // We only want students who have pending logs matching criteria
+                    required: true
                 }
             ]
         });
@@ -517,10 +522,13 @@ exports.getPendingFeesReport = async (req, res) => {
             filteredReport = report.filter(item => item.outstandingBalance >= min);
         }
 
+        // Calculate Grand Totals (BEFORE pagination)
+        const grandTotalBalance = filteredReport.reduce((acc, item) => acc + item.outstandingBalance, 0);
+        const grandTotalStudents = filteredReport.length;
+
         // Sort by balance descending
         filteredReport.sort((a, b) => b.outstandingBalance - a.outstandingBalance);
 
-        // For Report: we do server-side filtering and sorting, then paginate the final array
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const startIndex = (page - 1) * limit;
@@ -531,14 +539,17 @@ exports.getPendingFeesReport = async (req, res) => {
         res.status(200).json({
             success: true,
             data: paginatedData,
-            totalCount: filteredReport.length,
+            summary: {
+                totalBalance: grandTotalBalance,
+                totalStudents: grandTotalStudents
+            },
             pagination: {
-                totalCount: filteredReport.length,
-                totalPages: Math.ceil(filteredReport.length / limit),
+                totalCount: grandTotalStudents,
+                totalPages: Math.ceil(grandTotalStudents / limit),
                 currentPage: page,
                 limit
             },
-            fullCount: filteredReport.length // For print scenarios
+            fullCount: grandTotalStudents
         });
     } catch (error) {
         console.error('Error generating report:', error);

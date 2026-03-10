@@ -34,6 +34,7 @@ export default function PendingFeesReport() {
 
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
+    const [summary, setSummary] = useState({ totalBalance: 0, totalStudents: 0 });
     const [allDataForPrint, setAllDataForPrint] = useState([]);
 
     useEffect(() => {
@@ -60,6 +61,7 @@ export default function PendingFeesReport() {
             });
             setReport(result.data);
             setPagination(result.pagination);
+            setSummary(result.summary || { totalBalance: 0, totalStudents: 0 });
         } catch (error) {
             console.error("Failed to fetch report:", error);
             toast.error("Failed to load pending fees report.");
@@ -115,7 +117,19 @@ export default function PendingFeesReport() {
         item.fatherName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const totalOutstanding = filteredReport.reduce((acc, item) => acc + item.outstandingBalance, 0);
+    // If we have a searchTerm, we fallback to local sum of filtered items
+    // Otherwise we use the grand total balance from the whole DB set
+    const displayTotalOutstanding = searchTerm ? 
+        filteredReport.reduce((acc, item) => acc + item.outstandingBalance, 0) : 
+        summary.totalBalance;
+    
+    const displayStudentCount = searchTerm ? 
+        filteredReport.length : 
+        summary.totalStudents;
+
+    // For Print totals, we calculate from allDataForPrint
+    const totalOutstandingPrint = allDataForPrint.reduce((acc, item) => acc + item.outstandingBalance, 0);
+
     const selectedBranchName = branches.find(b => b.id.toString() === filters.branchId.toString())?.name || (user?.branchId ? "Current Branch" : "All Branches");
 
     const months = [
@@ -267,7 +281,7 @@ export default function PendingFeesReport() {
                     </div>
                     <div>
                         <p className="text-[10px] uppercase font-black text-gray-400">Total Outstanding</p>
-                        <p className="text-xl font-black text-red-600">Rs. {totalOutstanding.toLocaleString()}</p>
+                        <p className="text-xl font-black text-red-600">Rs. {displayTotalOutstanding.toLocaleString()}</p>
                     </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center gap-4">
@@ -276,7 +290,7 @@ export default function PendingFeesReport() {
                     </div>
                     <div>
                         <p className="text-[10px] uppercase font-black text-gray-400">Student Count</p>
-                        <p className="text-xl font-black text-blue-600">{filteredReport.length}</p>
+                        <p className="text-xl font-black text-blue-600">{displayStudentCount}</p>
                     </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center gap-4">
@@ -394,11 +408,11 @@ export default function PendingFeesReport() {
                         </div>
                         <div className="flex flex-col text-center">
                             <span className="text-[7pt] uppercase font-black text-gray-400 tracking-wider">Defaulter Count</span>
-                            <span className="text-[10pt] font-bold">{filteredReport.length} Students</span>
+                            <span className="text-[10pt] font-bold">{searchTerm ? allDataForPrint.length : summary.totalStudents} Students</span>
                         </div>
                         <div className="flex flex-col text-right">
                             <span className="text-[7pt] uppercase font-black text-gray-400 tracking-wider">Total Outstanding</span>
-                            <span className="text-[11pt] font-black text-gray-900">PKR {totalOutstanding.toLocaleString()}</span>
+                            <span className="text-[11pt] font-black text-gray-900">PKR {totalOutstandingPrint.toLocaleString()}</span>
                         </div>
                     </div>
 
@@ -434,7 +448,7 @@ export default function PendingFeesReport() {
                     <div className="flex justify-end mt-4">
                         <div className="w-1/3 border-t-2 border-black pt-2 flex justify-between items-center">
                             <span className="text-[9pt] font-black uppercase tracking-tighter">Grand Total:</span>
-                            <span className="text-lg font-black underline decoration-double">Rs. {totalOutstanding.toLocaleString()}</span>
+                            <span className="text-lg font-black underline decoration-double">Rs. {totalOutstandingPrint.toLocaleString()}</span>
                         </div>
                     </div>
 
