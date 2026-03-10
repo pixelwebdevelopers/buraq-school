@@ -21,6 +21,7 @@ const IMAGES = [
     { src: gallery7, alt: 'Sports Activities' },
     { src: gallery8, alt: 'Cultural Programs' },
     { src: gallery9, alt: 'Award Ceremony' },
+    { src: gallery1, alt: 'Buraq School Activities' },
 ];
 
 // Split into 2 rows for marquee on mobile

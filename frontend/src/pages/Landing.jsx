@@ -7,6 +7,7 @@ import TextMarquee from '@/components/landing/TextMarquee';
 import GallerySection from '@/components/landing/GallerySection';
 import ContactSection from '@/components/landing/ContactSection';
 import Footer from '@/components/landing/Footer';
+import CampusMap from '@/components/landing/CampusMap';
 
 /**
  * Landing — Buraq School public home page.
@@ -19,6 +20,7 @@ export default function Landing() {
             <VisionSection />
             <PerformanceSection />
             <BranchesCarousel />
+            <CampusMap />
             <LeadershipSection />
             <TextMarquee />
             <GallerySection />
