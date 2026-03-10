@@ -12,6 +12,17 @@ export const familyService = {
     },
 
     /**
+     * Look up family and common details by phone and branch
+     * @param {string} phone
+     * @param {number|string} branchId
+     * @returns {Promise<Object>}
+     */
+    lookupFamilyByPhone: async (phone, branchId) => {
+        const response = await api.get('/families/lookup', { params: { phone, branchId } });
+        return response.data;
+    },
+
+    /**
      * Get students for a specific family
      * @param {number} familyId 
      * @returns {Promise<Object>}

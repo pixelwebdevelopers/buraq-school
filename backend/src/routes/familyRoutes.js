@@ -9,6 +9,9 @@ router.use(authenticate);
 // GET /api/families/search
 router.get('/search', familyController.searchFamilies);
 
+// GET /api/families/lookup
+router.get('/lookup', familyController.lookupFamilyByPhone);
+
 // GET /api/families/:id/students
 router.get('/:id/students', familyController.getFamilyStudents);
 

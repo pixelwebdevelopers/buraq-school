@@ -62,6 +62,72 @@ exports.searchFamilies = async (req, res) => {
     }
 };
 
+exports.lookupFamilyByPhone = async (req, res) => {
+    try {
+        const { phone, branchId } = req.query;
+
+        if (!phone || !branchId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Phone and branchId are required'
+            });
+        }
+
+        const family = await Family.findOne({
+            where: { fatherPhone: phone, branchId: branchId },
+            include: [
+                {
+                    model: Student,
+                    order: [['createdAt', 'DESC']],
+                    limit: 1
+                }
+            ]
+        });
+
+        if (!family) {
+            return res.status(404).json({
+                success: false,
+                message: 'Family not found'
+            });
+        }
+
+        const familyData = family.toJSON();
+        const latestStudent = familyData.Students?.[0] || {};
+
+        // Prepare response with common fields
+        const responseData = {
+            family: {
+                id: familyData.id,
+                fatherName: familyData.fatherName,
+                fatherPhone: familyData.fatherPhone,
+                fatherOccupation: familyData.fatherOccupation
+            },
+            commonDetails: {
+                caste: latestStudent.caste || '',
+                religion: latestStudent.religion || '',
+                houseNo: latestStudent.houseNo || '',
+                streetNo: latestStudent.streetNo || '',
+                blockPhase: latestStudent.blockPhase || '',
+                mohallahColony: latestStudent.mohallahColony || '',
+                cell1: latestStudent.cell1 || '',
+                cell2: latestStudent.cell2 || '',
+                whatsapp: latestStudent.whatsapp || ''
+            }
+        };
+
+        res.status(200).json({
+            success: true,
+            data: responseData
+        });
+    } catch (error) {
+        console.error('Error looking up family:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error looking up family'
+        });
+    }
+};
+
 exports.getFamilyStudents = async (req, res) => {
     try {
         const { id } = req.params;

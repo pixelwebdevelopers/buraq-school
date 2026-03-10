@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaSearch } from 'react-icons/fa';
+import familyService from '../../services/familyService';
+import { toast } from 'react-hot-toast';
 
 export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isAdmin, initialData }) {
     const isEditing = !!initialData;
@@ -75,6 +77,42 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
         onSubmit(formData);
     };
 
+    const handleFamilySearch = async () => {
+        if (!formData.fatherPhone) {
+            toast.error('Please enter a phone number first');
+            return;
+        }
+
+        if (!formData.branchId) {
+            toast.error('Please select a branch first');
+            return;
+        }
+
+        try {
+            const result = await familyService.lookupFamilyByPhone(formData.fatherPhone, formData.branchId);
+
+            if (result.success && result.data) {
+                const { family, commonDetails } = result.data;
+
+                setFormData(prev => ({
+                    ...prev,
+                    fatherName: family.fatherName,
+                    fatherOccupation: family.fatherOccupation || '',
+                    ...commonDetails
+                }));
+
+                toast.success('Family found and details auto-filled!');
+            }
+        } catch (error) {
+            console.error('Family search error:', error);
+            if (error.response?.status === 404) {
+                toast.error('Family not found. Please proceed manually.');
+            } else {
+                toast.error('Error searching family. Please try again.');
+            }
+        }
+    };
+
     const classOptions = [
         { value: 'playgroup', label: 'Playgroup' },
         { value: 'nursery', label: 'Nursery' },
@@ -118,7 +156,19 @@ export default function AdmissionForm({ isOpen, onClose, onSubmit, branches, isA
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Father Phone <span className="text-red-500">*</span></label>
-                                    <input required type="text" name="fatherPhone" value={formData.fatherPhone} onChange={handleChange} disabled={isEditing} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500" placeholder="e.g. 03xx-xxxxxxx" />
+                                    <div className="flex gap-2">
+                                        <input required type="text" name="fatherPhone" value={formData.fatherPhone} onChange={handleChange} disabled={isEditing} className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA] outline-none transition-all shadow-sm disabled:bg-gray-100 disabled:text-gray-500" placeholder="e.g. 03xx-xxxxxxx" />
+                                        {!isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={handleFamilySearch}
+                                                className="bg-[#4B5EAA] text-white p-2 rounded-lg hover:bg-[#3A4A8B] transition-all shadow-sm flex items-center justify-center min-w-[40px]"
+                                                title="Search Family"
+                                            >
+                                                <FaSearch className="text-sm" />
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase">Father Name <span className="text-red-500">*</span></label>
