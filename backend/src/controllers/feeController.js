@@ -37,6 +37,7 @@ exports.getStudentFees = async (req, res) => {
             data: {
                 vouchers: rows,
                 totalBalance,
+                totalCount: count,
                 totalPages: Math.ceil(count / limit),
                 currentPage: page
             }
@@ -524,5 +525,39 @@ exports.getPendingFeesReport = async (req, res) => {
     } catch (error) {
         console.error('Error generating report:', error);
         res.status(500).json({ success: false, message: 'Error generating pending fees report.' });
+    }
+};
+
+exports.deleteVoucher = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const voucher = await FeeLog.findByPk(id, {
+            include: [{ model: Student }]
+        });
+
+        if (!voucher) {
+            return res.status(404).json({ success: false, message: 'Voucher not found.' });
+        }
+
+        // Branch scoping check for PRINCIPAL
+        if (req.user.role === 'PRINCIPAL') {
+            if (voucher.Student?.branchId !== req.user.branchId) {
+                return res.status(403).json({ success: false, message: 'Access denied to this student\'s branch fees.' });
+            }
+        } else if (req.user.role !== 'ADMIN') {
+            return res.status(403).json({ success: false, message: 'Unauthorized to delete vouchers.' });
+        }
+
+        // Safety check: Don't delete if payment has been made
+        if (parseFloat(voucher.paidAmount || 0) > 0 || voucher.status === 'PAID' || voucher.status === 'PARTIAL') {
+            return res.status(400).json({ success: false, message: 'Cannot delete a voucher that has payments associated with it. Please void payments first if necessary.' });
+        }
+
+        await voucher.destroy();
+
+        res.status(200).json({ success: true, message: 'Voucher deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting voucher:', error);
+        res.status(500).json({ success: false, message: 'Error deleting voucher.' });
     }
 };

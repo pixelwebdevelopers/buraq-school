@@ -26,5 +26,7 @@ router.get('/bulk', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.getB
 // Reporting routes (Restricted to ADMIN/PRINCIPAL)
 router.get('/report/pending', authorize('ADMIN', 'PRINCIPAL'), feeController.getPendingFeesReport);
 
+// Delete voucher - Restricted to ADMIN and PRINCIPAL
+router.delete('/:id', authorize('ADMIN', 'PRINCIPAL'), feeController.deleteVoucher);
 
 module.exports = router;

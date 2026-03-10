@@ -81,6 +81,16 @@ const feeService = {
     getPendingFeesReport: async (params) => {
         const response = await api.get('/fees/report/pending', { params });
         return response.data;
+    },
+
+    /**
+     * Delete a fee voucher
+     * @param {number} voucherId 
+     * @returns {Promise<Object>}
+     */
+    deleteVoucher: async (voucherId) => {
+        const response = await api.delete(`/fees/${voucherId}`);
+        return response.data;
     }
 };
 
