@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
-const { authenticate } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
-router.use(authenticate);
+router.use(protect);
 
 router.route('/stats')
     .get(dashboardController.getStats);

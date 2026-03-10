@@ -61,6 +61,13 @@ const authService = {
             throw error;
         }
 
+        // Check if user is active
+        if (user.isActive === false) {
+            const error = new Error('Your account has been disabled. Please contact the administrator.');
+            error.statusCode = 403;
+            throw error;
+        }
+
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role, branchId: user.branchId },
             config.jwtSecret,

@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
-const { authenticate, authorize } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 // Apply authentication middleware to all routes
-router.use(authenticate);
+router.use(protect);
 
 // All roles can access students, but controllers enforce the branch scope
 router.route('/')

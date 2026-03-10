@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         phone: { type: DataTypes.STRING(20) },
         role: { type: DataTypes.ENUM('ADMIN', 'PRINCIPAL', 'STAFF'), defaultValue: 'STAFF' },
         branchId: { type: DataTypes.INTEGER },
+        isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
         resetPasswordToken: { type: DataTypes.STRING(255) },
         resetPasswordExpires: { type: DataTypes.DATE }
     }, {

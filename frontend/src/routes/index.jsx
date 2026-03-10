@@ -20,6 +20,8 @@ import FamilyTree from '@/pages/FamilyTree';
 import Fees from '@/pages/Fees';
 import ReportsHub from '@/pages/Reports';
 import PendingFeesReport from '@/pages/Reports/PendingFees';
+import Users from '@/pages/Users';
+import Settings from '@/pages/Settings';
 
 /**
  * Application route configuration.
@@ -61,6 +63,8 @@ const router = createBrowserRouter([
             { path: 'students', element: <Students /> },
             { path: 'family-tree', element: <FamilyTree /> },
             { path: 'fees', element: <Fees /> },
+            { path: 'users', element: <Users /> },
+            { path: 'settings', element: <Settings /> },
             {
                 path: 'reports',
                 children: [

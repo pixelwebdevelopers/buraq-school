@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const feeController = require('../controllers/feeController');
-const { authenticate } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 // Protect all routes
-router.use(authenticate);
+router.use(protect);
 
 // GET /api/fees/student/:studentId
 router.get('/student/:studentId', feeController.getStudentFees);

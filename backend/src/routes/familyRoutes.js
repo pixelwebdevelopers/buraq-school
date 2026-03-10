@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const familyController = require('../controllers/familyController');
-const { authenticate } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
 // Protect all routes
-router.use(authenticate);
+router.use(protect);
 
 // GET /api/families/search
 router.get('/search', familyController.searchFamilies);

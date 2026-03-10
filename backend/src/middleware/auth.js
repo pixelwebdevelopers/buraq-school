@@ -5,7 +5,11 @@ const config = require('../config/app');
  * Authentication middleware.
  * Verifies JWT token from Authorization header or cookies.
  */
-function authenticate(req, res, next) {
+/**
+ * Authentication middleware.
+ * Verifies JWT token from Authorization header or cookies.
+ */
+function protect(req, res, next) {
     try {
         // Extract token from Authorization header or cookies
         let token = null;
@@ -52,4 +56,4 @@ function authorize(...roles) {
     };
 }
 
-module.exports = { authenticate, authorize };
+module.exports = { protect, authorize };
