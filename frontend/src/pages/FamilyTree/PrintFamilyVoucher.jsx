@@ -31,12 +31,50 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     }, [isOpen, family]);
 
     const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
+        contentRef: componentRef,
         documentTitle: `Family_Voucher_${family?.fatherName || 'Student'}_${group?.month}_${group?.year}`,
         pageStyle: `
-            @page { size: auto; margin: 3mm; }
+            @page { 
+                size: landscape; 
+                margin: 0; 
+            }
             @media print {
-                body { -webkit-print-color-adjust: exact; padding: 0 !important; margin: 0 !important; }
+                body { 
+                    -webkit-print-color-adjust: exact; 
+                    padding: 0 !important; 
+                    margin: 0 !important; 
+                }
+                .print-container {
+                    width: 297mm;
+                    height: 210mm;
+                    padding: 8mm !important;
+                    box-sizing: border-box;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    gap: 5mm !important;
+                    overflow: hidden !important;
+                    background: white !important;
+                }
+                .slip {
+                    flex: 1;
+                    height: 100%;
+                    border: 1px solid #000 !important;
+                    padding: 5mm !important;
+                    box-sizing: border-box;
+                    page-break-inside: avoid;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: space-between !important;
+                    overflow: hidden !important;
+                }
+                table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                }
+                th, td {
+                    padding: 1mm !important;
+                    border: 0.1mm solid #ccc !important;
+                }
             }
         `
     });
@@ -55,15 +93,15 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     });
 
     const renderSlip = (copyType, index) => (
-        <div key={index} className="flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '380px', fontSize: '10px' }}>
-            <div>
+        <div key={index} className="slip flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '9px' }}>
+            <div className="overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-1 mb-2">
                     <div className="flex items-center gap-2 mb-0.5">
                         <img src="/logo.png" alt="Buraq School" className="w-6 h-6 object-contain grayscale" />
                         <h2 className="text-base font-bold uppercase tracking-wider text-gray-900 leading-tight">Buraq School System</h2>
                     </div>
-                    <p className="text-[8px] uppercase font-semibold text-gray-600">Collective Fee Voucher - {copyType}</p>
+                    <p className="text-[8px] uppercase font-semibold text-gray-600 font-mono tracking-widest">Collective Fee Voucher - {copyType}</p>
                 </div>
 
                 {/* Info Grid */}
@@ -71,81 +109,78 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                     <div className="font-semibold text-gray-700">Family ID: <span className="font-mono text-gray-900 ml-1">{family.id.toString().padStart(4, '0')}</span></div>
                     <div className="font-semibold text-gray-700 text-right">Date: <span className="font-mono text-gray-900 ml-1">{dayjs().format('DD-MMM-YYYY')}</span></div>
                     <div className="font-semibold text-gray-700">Month/Year: <span className="font-mono text-gray-900 ml-1 font-bold">{monthName} {group.year}</span></div>
-                    <div className="font-semibold text-gray-700 text-right">Father: <span className="text-gray-900 font-bold ml-1 uppercase">{family.fatherName}</span></div>
+                    <div className="font-semibold text-gray-700 text-right uppercase tracking-tighter">Father: <span className="text-gray-900 font-bold ml-1">{family.fatherName}</span></div>
                 </div>
 
                 {/* Sibling List Table */}
-                <table className="w-full text-left text-[9px] border-collapse mb-2 border">
-                    <thead className="bg-gray-100">
-                        <tr className="border-b border-gray-400">
-                            <th className="px-1 py-0.5 border-r font-bold">Student Name</th>
-                            <th className="px-1 py-0.5 border-r font-bold">Status</th>
-                            <th className="px-1 py-0.5 font-bold text-right">Fee (Rs.)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {allStudents.map(student => {
-                            const voucher = studentVoucherMap[student.id];
-                            return (
-                                <tr key={student.id} className="border-b border-gray-200">
-                                    <td className="px-1 py-1 border-r font-medium">
-                                        {student.name} <span className="text-[7px] text-gray-400">({student.currentClass})</span>
-                                    </td>
-                                    <td className="px-1 py-1 border-r text-center">
-                                        {voucher ? (
-                                            <span className={`font-bold ${voucher.status === 'PAID' ? 'text-green-600' : 'text-red-500 underline'}`}>
-                                                {voucher.status}
-                                            </span>
-                                        ) : (
-                                            <span className="text-gray-400 italic font-bold">PENDING GEN</span>
-                                        )}
-                                    </td>
-                                    <td className="px-1 py-1 text-right font-mono">
-                                        {voucher ? parseFloat(voucher.amount).toFixed(2) : '0.00'}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                    <tfoot className="bg-gray-50 font-bold">
-                        <tr>
-                            <td colSpan="2" className="px-1 py-1 text-right border-r uppercase tracking-tighter">Collective Total:</td>
-                            <td className="px-1 py-1 text-right font-mono text-indigo-700">Rs. {parseFloat(group.totalAmount).toFixed(2)}</td>
-                        </tr>
-                    </tfoot>
-                </table>
+                <div className="flex-1 overflow-hidden">
+                    <table className="w-full text-left text-[9px] border-collapse mb-1 border">
+                        <thead className="bg-gray-100">
+                            <tr className="border-b border-gray-400">
+                                <th className="px-1 py-0.5 border-r font-bold">Student Name</th>
+                                <th className="px-1 py-0.5 border-r font-bold">Class</th>
+                                <th className="px-1 py-0.5 font-bold text-right">Fee (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {allStudents.map(student => {
+                                const voucher = studentVoucherMap[student.id];
+                                return (
+                                    <tr key={student.id} className="border-b border-gray-200">
+                                        <td className="px-1 py-0.5 border-r font-medium uppercase truncate" style={{ maxWidth: '80px' }}>
+                                            {student.name}
+                                        </td>
+                                        <td className="px-1 py-0.5 border-r text-center font-mono">
+                                            {student.currentClass}
+                                        </td>
+                                        <td className="px-1 py-0.5 text-right font-mono font-bold">
+                                            {voucher ? parseFloat(voucher.amount).toFixed(2) : '0.00'}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                        <tfoot className="bg-gray-50 font-bold">
+                            <tr>
+                                <td colSpan="2" className="px-1 py-1 text-right border-r uppercase tracking-tighter">Collective Total:</td>
+                                <td className="px-1 py-1 text-right font-mono text-indigo-800 underline">Rs. {parseFloat(group.totalAmount).toFixed(2)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
 
-                {/* Fee Breakdown Legend (Optional/Compact) */}
-                <div className="text-[7.5px] text-gray-500 italic mb-2 leading-tight border-l-2 border-indigo-200 pl-1">
-                    * Fee includes: Tuition, Academy, and Lab/Misc charges as defined in student profile.
+                {/* Fee Breakdown Legend */}
+                <div className="text-[7px] text-gray-400 italic mb-2 leading-none">
+                    * Fee includes: Tuition, Academy, and Lab/Misc charges.
                 </div>
             </div>
 
             <div className="mt-auto">
                 {/* Collective Balance info if partially paid */}
                 {group.totalPaid > 0 && (
-                    <div className="flex justify-between items-center bg-green-50 px-2 py-1 rounded mb-2 border border-green-100 text-[9px] font-mono">
-                        <span className="font-bold text-green-700 uppercase">Paid So Far:</span>
-                        <span className="font-black text-green-800">Rs. {parseFloat(group.totalPaid).toFixed(2)}</span>
+                    <div className="flex justify-between items-center bg-green-50 px-2 py-0.5 rounded mb-1 border border-green-100 text-[8px] font-mono">
+                        <span className="font-bold text-green-700 uppercase tracking-tighter">Amount Paid:</span>
+                        <span className="font-bold text-green-800">Rs. {parseFloat(group.totalPaid).toFixed(2)}</span>
                     </div>
                 )}
 
                 {/* Collective Remaining */}
                 {(group.totalAmount - group.totalPaid) > 0 && (
-                    <div className="flex justify-between items-center bg-red-50 px-2 py-1 rounded mb-4 border border-red-100 text-[9px] font-mono">
-                        <span className="font-bold text-red-700 uppercase">Remaining Due:</span>
+                    <div className="flex justify-between items-center bg-red-50 px-2 py-0.5 rounded mb-2 border border-red-100 text-[8px] font-mono">
+                        <span className="font-bold text-red-700 uppercase tracking-tighter">Due Balance:</span>
                         <span className="font-black text-red-800 underline">Rs. {(group.totalAmount - group.totalPaid).toFixed(2)}</span>
                     </div>
                 )}
 
                 {/* Signatures */}
-                <div className="flex justify-between items-end mt-2 pt-2 text-[8px] uppercase font-bold text-gray-500">
-                    <div className="border-t border-gray-400 w-16 pt-0.5 text-center">Cashier</div>
-                    <div className="border-t border-gray-400 w-16 pt-0.5 text-center">Depositor</div>
+                <div className="flex justify-between items-end mt-1 pt-1 text-[8px] uppercase font-bold text-gray-500">
+                    <div className="border-t-2 border-gray-400 w-16 pt-0.5 text-center">Cashier</div>
+                    <div className="border-t-2 border-gray-400 w-16 pt-0.5 text-center">Depositor</div>
                 </div>
             </div>
         </div>
     );
+
 
     return (
         <div className="fixed inset-0 z-[70] flex p-4 backdrop-blur-sm bg-black/70 overflow-hidden">
@@ -184,7 +219,7 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                             <p className="font-semibold text-gray-500">Fetching sibling data...</p>
                         </div>
                     ) : (
-                        <div ref={componentRef} className="bg-white p-6 shadow-sm w-full" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
+                        <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
                             <div className="flex flex-col md:flex-row gap-4 h-full w-full justify-between print:flex-row print:gap-4 print:h-full pb-8">
                                 {copyTypes.map((type, i) => renderSlip(type, i))}
                             </div>
@@ -197,4 +232,5 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
             </div>
         </div>
     );
+
 }
