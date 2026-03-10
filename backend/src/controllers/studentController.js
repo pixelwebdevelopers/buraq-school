@@ -38,18 +38,30 @@ const studentController = {
                 includeFamily.required = true; // Force inner join for accurate search
             }
 
-            const students = await Student.findAll({
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const offset = (page - 1) * limit;
+
+            const { count, rows: students } = await Student.findAndCountAll({
                 where: whereClause,
                 include: [
                     includeFamily,
                     { model: Branch, attributes: ['id', 'name'] }
                 ],
-                order: [['createdAt', 'DESC']]
+                order: [['createdAt', 'DESC']],
+                limit,
+                offset
             });
 
             res.status(200).json({
                 success: true,
-                data: students
+                data: students,
+                pagination: {
+                    totalCount: count,
+                    totalPages: Math.ceil(count / limit),
+                    currentPage: page,
+                    limit
+                }
             });
 
         } catch (error) {

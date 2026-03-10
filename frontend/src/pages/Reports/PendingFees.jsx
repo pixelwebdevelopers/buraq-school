@@ -6,11 +6,13 @@ import branchServiceDefault from '@/services/branchService';
 import { useAuth } from '@/context/AuthContext';
 import {
     FaPrint, FaSearch, FaUserClock, FaPhoneAlt, FaExclamationCircle,
-    FaFilter, FaFileAlt, FaMapMarkerAlt, FaCalendarAlt, FaMoneyBillWave, FaArrowLeft
+    FaFilter, FaFileAlt, FaMapMarkerAlt, FaCalendarAlt, FaMoneyBillWave, FaArrowLeft,
+    FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import logo from '@/assets/images/logo.png';
+import Pagination from '@/components/common/Pagination';
 
 export default function PendingFeesReport() {
     const { user } = useAuth();
@@ -25,10 +27,14 @@ export default function PendingFeesReport() {
     const [filters, setFilters] = useState({
         branchId: user?.branchId || '',
         currentClass: '',
-        month: '',
-        year: '',
+        month: (new Date().getMonth() + 1).toString(),
+        year: new Date().getFullYear().toString(),
         minBalance: ''
     });
+
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
+    const [allDataForPrint, setAllDataForPrint] = useState([]);
 
     useEffect(() => {
         const fetchBranches = async () => {
@@ -47,15 +53,20 @@ export default function PendingFeesReport() {
     const fetchReport = useCallback(async () => {
         setLoading(true);
         try {
-            const result = await feeService.getPendingFeesReport(filters);
+            const result = await feeService.getPendingFeesReport({
+                ...filters,
+                page,
+                limit: 10
+            });
             setReport(result.data);
+            setPagination(result.pagination);
         } catch (error) {
             console.error("Failed to fetch report:", error);
             toast.error("Failed to load pending fees report.");
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, page]);
 
     useEffect(() => {
         fetchReport();
@@ -64,6 +75,26 @@ export default function PendingFeesReport() {
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         setFilters(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handlePrintRequest = async () => {
+        // Fetch fresh full data before printing to ensure accuracy
+        setLoading(true);
+        try {
+            const response = await feeService.getPendingFeesReport({ ...filters, limit: 10000 });
+            setAllDataForPrint(response.data);
+            // useReactToPrint will trigger after state update if we use a ref and effect, 
+            // but for simplicity we can just wait for the next render if the user clicks again, 
+            // or trigger it manually. Actually, handlePrint() is from useReactToPrint.
+            // Let's just update the contentRef to use the new data.
+            setTimeout(() => {
+                handlePrint();
+                setLoading(false);
+            }, 500);
+        } catch (err) {
+            console.error("Print fetch failed", err);
+            setLoading(false);
+        }
     };
 
     const handlePrint = useReactToPrint({
@@ -119,12 +150,12 @@ export default function PendingFeesReport() {
                     </div>
                 </div>
                 <button
-                    onClick={() => handlePrint()}
-                    disabled={filteredReport.length === 0}
+                    onClick={handlePrintRequest}
+                    disabled={loading || pagination.totalCount === 0}
                     className="flex items-center gap-2 rounded-lg bg-[#4B5EAA] px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:bg-[#3A4A8B] transition-all disabled:bg-gray-300"
                 >
                     <FaPrint />
-                    Print A4 Report
+                    {loading && allDataForPrint.length === 0 ? 'Preparing Print...' : 'Print A4 Report'}
                 </button>
             </div>
 
@@ -330,7 +361,16 @@ export default function PendingFeesReport() {
                         </table>
                     </div>
                 )}
+
+                {/* Pagination Controls */}
+                <Pagination
+                    currentPage={page}
+                    totalPages={pagination.totalPages}
+                    onPageChange={setPage}
+                    totalCount={pagination.totalCount}
+                />
             </div>
+
 
             {/* Hidden Print Content (A4 Portrait) */}
             <div className="hidden">
@@ -376,7 +416,7 @@ export default function PendingFeesReport() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredReport.map((item) => (
+                            {allDataForPrint.map((item) => (
                                 <tr key={item.id} className="border-b-[0.5pt] border-gray-200">
                                     <td className="py-2.5 px-1 text-[8.5pt] font-bold text-gray-700 uppercase">{item.currentClass}</td>
                                     <td className="py-2.5 px-1 text-[8.5pt] font-bold text-gray-700 uppercase">{item.section}</td>
@@ -406,6 +446,6 @@ export default function PendingFeesReport() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

@@ -9,9 +9,9 @@ export const dashboardService = {
 
 export const studentService = {
     getStudents: async (params) => {
-        // params can include: search, branchId, currentClass
+        // params can include: search, branchId, currentClass, page, limit
         const response = await api.get('/students', { params });
-        return response.data.data;
+        return response.data;
     },
 
     admitStudent: async (studentData) => {

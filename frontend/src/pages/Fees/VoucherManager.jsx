@@ -1,29 +1,33 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import feeService from '@/services/feeService';
-import { FaSync, FaPrint, FaExclamationTriangle, FaCheckCircle, FaSpinner } from 'react-icons/fa';
+import { FaSync, FaPrint, FaExclamationTriangle, FaCheckCircle, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import BulkPrintVouchers from './BulkPrintVouchers';
+import Pagination from '@/components/common/Pagination';
 
 export default function VoucherManager({ filters }) {
     const [vouchers, setVouchers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
     const printRef = useRef();
 
     const fetchVouchers = useCallback(async () => {
         if (!filters.branchId || !filters.currentClass) return;
         setLoading(true);
         try {
-            const result = await feeService.getBulkFees(filters);
+            const result = await feeService.getBulkFees({ ...filters, page, limit: 10 });
             setVouchers(result.data);
+            setPagination(result.pagination);
         } catch (error) {
             console.error("Failed to fetch vouchers:", error);
             toast.error("Failed to load vouchers.");
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, page]);
 
     useEffect(() => {
         fetchVouchers();
@@ -99,49 +103,53 @@ export default function VoucherManager({ filters }) {
                     <FaExclamationTriangle className="text-4xl mx-auto mb-3 text-amber-300" />
                     <p className="text-sm font-medium">Please select a class to view or generate vouchers.</p>
                 </div>
-            ) : vouchers.length === 0 ? (
-                <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <FaExclamationTriangle className="text-4xl mx-auto mb-3 text-amber-300" />
-                    <p className="text-sm font-medium">No vouchers found for the selected criteria.</p>
-                    <p className="text-xs mt-1">Try generating them or changing your filters.</p>
-                </div>
             ) : (
-                <div className="overflow-x-auto rounded-xl border border-gray-200">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-4">Student</th>
-                                <th className="px-6 py-4">Roll No.</th>
-                                <th className="px-6 py-4">Class</th>
-                                <th className="px-6 py-4">Father Name</th>
-                                <th className="px-6 py-4 text-right">Amount (Rs.)</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {vouchers.map(v => (
-                                <tr key={v.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-800">{v.Student?.name}</td>
-                                    <td className="px-6 py-4 font-mono text-xs">{v.Student?.referenceNo || 'N/A'}</td>
-                                    <td className="px-6 py-4 capitalize">{v.Student?.currentClass} {v.Student?.section && `(${v.Student.section})`}</td>
-                                    <td className="px-6 py-4 text-gray-600">{v.Family?.fatherName}</td>
-                                    <td className="px-6 py-4 text-right font-bold text-gray-900">Rs. {parseFloat(v.amount).toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-center">
-                                        {v.status === 'PAID' ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-[10px] uppercase font-black text-green-600 ring-1 ring-inset ring-green-600/20">
-                                                <FaCheckCircle className="text-[8px]" /> Paid
-                                            </span>
-                                        ) : v.status === 'PARTIAL' ? (
-                                            <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-[10px] uppercase font-black text-amber-600 ring-1 ring-inset ring-amber-600/20">Partial</span>
-                                        ) : (
-                                            <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-[10px] uppercase font-black text-red-600 ring-1 ring-inset ring-red-600/20">Pending</span>
-                                        )}
-                                    </td>
+                <>
+                    <div className="overflow-x-auto rounded-xl border border-gray-200">
+                        <table className="w-full text-left text-sm whitespace-nowrap">
+                            <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-xs border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-4">Student</th>
+                                    <th className="px-6 py-4">Roll No.</th>
+                                    <th className="px-6 py-4">Class</th>
+                                    <th className="px-6 py-4">Father Name</th>
+                                    <th className="px-6 py-4 text-right">Amount (Rs.)</th>
+                                    <th className="px-6 py-4 text-center">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {vouchers.map(v => (
+                                    <tr key={v.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 font-medium text-gray-800">{v.Student?.name}</td>
+                                        <td className="px-6 py-4 font-mono text-xs">{v.Student?.referenceNo || 'N/A'}</td>
+                                        <td className="px-6 py-4 capitalize">{v.Student?.currentClass} {v.Student?.section && `(${v.Student.section})`}</td>
+                                        <td className="px-6 py-4 text-gray-600">{v.Family?.fatherName}</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-900">Rs. {parseFloat(v.amount).toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            {v.status === 'PAID' ? (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-[10px] uppercase font-black text-green-600 ring-1 ring-inset ring-green-600/20">
+                                                    <FaCheckCircle className="text-[8px]" /> Paid
+                                                </span>
+                                            ) : v.status === 'PARTIAL' ? (
+                                                <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-1 text-[10px] uppercase font-black text-amber-600 ring-1 ring-inset ring-amber-600/20">Partial</span>
+                                            ) : (
+                                                <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-[10px] uppercase font-black text-red-600 ring-1 ring-inset ring-red-600/20">Pending</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <Pagination
+                        currentPage={page}
+                        totalPages={pagination.totalPages}
+                        onPageChange={setPage}
+                        totalCount={pagination.totalCount}
+                    />
+                </>
             )}
 
             {/* Hidden component for printing - Using absolute positioning to hide from screen */}

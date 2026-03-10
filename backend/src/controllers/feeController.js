@@ -365,7 +365,11 @@ exports.getBulkFees = async (req, res) => {
             studentWhere.currentClass = currentClass;
         }
 
-        const feeLogs = await FeeLog.findAll({
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = (page - 1) * limit;
+
+        const { count, rows: feeLogs } = await FeeLog.findAndCountAll({
             where: whereClause,
             include: [
                 {
@@ -378,12 +382,20 @@ exports.getBulkFees = async (req, res) => {
                     attributes: ['id', 'fatherName', 'fatherPhone']
                 }
             ],
+            limit,
+            offset,
             order: [[Student, 'name', 'ASC']]
         });
 
         res.status(200).json({
             success: true,
-            data: feeLogs
+            data: feeLogs,
+            pagination: {
+                totalCount: count,
+                totalPages: Math.ceil(count / limit),
+                currentPage: page,
+                limit
+            }
         });
     } catch (error) {
         console.error('Error fetching bulk fees:', error);
@@ -456,9 +468,25 @@ exports.getPendingFeesReport = async (req, res) => {
         // Sort by balance descending
         filteredReport.sort((a, b) => b.outstandingBalance - a.outstandingBalance);
 
+        // For Report: we do server-side filtering and sorting, then paginate the final array
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedData = filteredReport.slice(startIndex, endIndex);
+
         res.status(200).json({
             success: true,
-            data: filteredReport
+            data: paginatedData,
+            totalCount: filteredReport.length,
+            pagination: {
+                totalCount: filteredReport.length,
+                totalPages: Math.ceil(filteredReport.length / limit),
+                currentPage: page,
+                limit
+            },
+            fullCount: filteredReport.length // For print scenarios
         });
     } catch (error) {
         console.error('Error generating report:', error);

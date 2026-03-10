@@ -63,15 +63,7 @@ export default function Dashboard() {
                     bgColorClass="bg-green-100"
                 />
 
-                {user?.role === 'ADMIN' ? (
-                    <StatsCard
-                        icon={<FaUserTie className="text-xl text-purple-600" />}
-                        title="Total Principals"
-                        value={stats.totalPrincipals}
-                        colorClass="text-purple-600"
-                        bgColorClass="bg-purple-100"
-                    />
-                ) : (
+                {user?.role !== 'ADMIN' && (
                     <StatsCard
                         icon={<FaUserTie className="text-xl text-purple-600" />}
                         title="Total Staff"
@@ -82,13 +74,6 @@ export default function Dashboard() {
                 )}
             </div>
 
-            {/* Welcome Section */}
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm min-h-[200px]">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome back, {user?.name}</h2>
-                <p className="text-gray-500 max-w-lg">
-                    You are logged in as <strong className="text-[#4B5EAA]">{user?.role}</strong>. Use the sidebar menu to navigate through your authorized modules.
-                </p>
-            </div>
         </div>
     );
 }

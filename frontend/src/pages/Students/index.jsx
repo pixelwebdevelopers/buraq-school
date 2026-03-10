@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { studentService } from '@/services/apiServices';
-import { FaPlus, FaSearch, FaFilter, FaUserGraduate, FaIdCard, FaPhoneAlt, FaEdit } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaFilter, FaUserGraduate, FaIdCard, FaPhoneAlt, FaEdit, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import AdmissionForm from './AdmissionForm';
+import Pagination from '@/components/common/Pagination';
 
 // Helper to fetch branches if Admin
 import branchServiceDefault from '@/services/branchService';
@@ -32,17 +33,20 @@ export default function Students() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
 
     const fetchStudents = useCallback(async () => {
         setLoading(true);
         try {
-            const params = {};
+            const params = { page, limit: 10 };
             if (searchTerm) params.search = searchTerm;
             if (selectedBranch && isAdmin) params.branchId = selectedBranch;
             if (selectedClass) params.currentClass = selectedClass;
 
-            const data = await studentService.getStudents(params);
-            setStudents(data);
+            const response = await studentService.getStudents(params);
+            setStudents(response.data);
+            setPagination(response.pagination);
             setError(null);
         } catch (err) {
             console.error("Failed to fetch students:", err);
@@ -50,7 +54,7 @@ export default function Students() {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, selectedBranch, selectedClass, isAdmin]);
+    }, [searchTerm, selectedBranch, selectedClass, isAdmin, page]);
 
     useEffect(() => {
         const fetchBranchesList = async () => {
@@ -212,6 +216,18 @@ export default function Students() {
                 </div>
             </div>
 
+            {/* Pagination Controls Top (Optional but good for UX) */}
+            {pagination.totalPages > 1 && (
+                <div className="flex justify-end">
+                    <Pagination
+                        currentPage={page}
+                        totalPages={pagination.totalPages}
+                        onPageChange={setPage}
+                        totalCount={pagination.totalCount}
+                    />
+                </div>
+            )}
+
             {error && (
                 <div className="rounded-lg bg-red-50 p-4 text-sm text-red-500 border border-red-200">
                     {error}
@@ -317,6 +333,14 @@ export default function Students() {
                     </table>
                 </div>
             </div>
+
+            {/* Pagination Controls */}
+            <Pagination
+                currentPage={page}
+                totalPages={pagination.totalPages}
+                onPageChange={setPage}
+                totalCount={pagination.totalCount}
+            />
 
             {isFormOpen && (
                 <AdmissionForm
