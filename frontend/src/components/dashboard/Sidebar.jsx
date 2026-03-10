@@ -5,7 +5,6 @@ import {
     FaHome, FaUserGraduate, FaMoneyBillWave, FaCog, FaAngleDoubleLeft, FaAngleDoubleRight,
     FaMapMarkerAlt, FaGlobe, FaChartBar
 } from 'react-icons/fa';
-import logo from '@/assets/images/logo.png';
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
     const { user } = useAuth();
@@ -29,8 +28,10 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     // Ensure we handle case insensitivity
     const visibleLinks = allLinks.filter(link => link.roles.includes(role.toUpperCase()));
 
-    // Width classes
-    const widthClass = isCollapsed ? 'w-20' : 'w-64';
+    // Width classes - Responsive by default, but manual toggle overrides
+    // lg (1024px) -> w-20 (Mini)
+    // xl (1280px) -> w-56 (Full - Adjusted for smaller lpatops)
+    const widthClass = isCollapsed ? 'w-20' : 'w-20 xl:w-56';
 
     return (
         <>
@@ -44,17 +45,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
             <aside className={`fixed inset-y-0 left-0 z-40 flex flex-col bg-[#242A45] text-[#9EA6C9] transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${widthClass}`}>
 
-                {/* Logo Area */}
-                <div className={`flex h-16 items-center bg-white shadow-sm transition-all duration-300 ${isCollapsed ? 'justify-center px-2' : 'justify-center px-6 py-2'}`}>
-                    {isCollapsed ? (
-                        <img src={logo} alt="Logo" className="h-8 w-8 object-contain" />
-                    ) : (
-                        <img src={logo} alt="Logo" className="h-10 w-auto object-contain" />
-                    )}
-                </div>
 
                 {/* Navigation Links */}
-                <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-6 no-scrollbar">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 no-scrollbar">
                     <nav className="space-y-2">
                         {visibleLinks.map((link) => (
                             <NavLink
@@ -75,9 +68,9 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                         <span className={`text-xl transition-colors ${isActive ? 'text-white' : 'text-[#8C98B9] group-hover:text-white'}`}>
                                             {link.icon}
                                         </span>
-                                        {!isCollapsed && <span className="whitespace-nowrap">{link.name}</span>}
+                                        {!isCollapsed && <span className="hidden xl:block whitespace-nowrap">{link.name}</span>}
                                         {isActive && (
-                                            <span className={`absolute bg-red-500 rounded-full ${isCollapsed ? 'top-1 right-2 h-2 w-2' : 'right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2'
+                                            <span className={`absolute bg-red-500 rounded-full ${isCollapsed ? 'top-1 right-2 h-2 w-2' : 'right-3 xl:right-3 top-1/2 h-1.5 w-1.5 -translate-y-1/2'
                                                 }`} />
                                         )}
                                     </>
