@@ -151,15 +151,31 @@ const userController = {
      */
     updateProfile: async (req, res, next) => {
         try {
-            const { name, phone } = req.body;
+            const { name, phone, email, username } = req.body;
             const user = await User.findByPk(req.user.id);
 
-            await user.update({ name, phone });
+            // Check if email is being changed and if it's already taken
+            if (email && email !== user.email) {
+                const existingEmail = await User.findOne({ where: { email } });
+                if (existingEmail) {
+                    return res.status(400).json({ success: false, message: 'Email is already in use' });
+                }
+            }
+
+            // Check if username is being changed and if it's already taken
+            if (username && username !== user.username) {
+                const existingUsername = await User.findOne({ where: { username } });
+                if (existingUsername) {
+                    return res.status(400).json({ success: false, message: 'Username is already in use' });
+                }
+            }
+
+            await user.update({ name, phone, email, username });
 
             res.status(200).json({
                 success: true,
                 message: 'Profile updated successfully',
-                user: { id: user.id, name: user.name, phone: user.phone, email: user.email, role: user.role }
+                user: { id: user.id, name: user.name, phone: user.phone, email: user.email, username: user.username, role: user.role }
             });
         } catch (error) {
             next(error);

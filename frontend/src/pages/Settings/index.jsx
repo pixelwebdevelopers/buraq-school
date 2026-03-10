@@ -9,6 +9,8 @@ export default function Settings() {
     const [profileData, setProfileData] = useState({
         name: user?.name || '',
         phone: user?.phone || '',
+        email: user?.email || '',
+        username: user?.username || '',
     });
 
     const [passwords, setPasswords] = useState({
@@ -81,18 +83,20 @@ export default function Settings() {
                             <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Username</label>
                             <input
                                 type="text"
-                                className="w-full rounded-xl border border-border bg-gray-50 p-3 text-sm text-text-muted"
-                                value={user?.username}
-                                disabled
+                                className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:outline-none"
+                                value={profileData.username}
+                                onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                                required
                             />
                         </div>
                         <div>
                             <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Email Address</label>
                             <input
                                 type="email"
-                                className="w-full rounded-xl border border-border bg-gray-50 p-3 text-sm text-text-muted"
-                                value={user?.email}
-                                disabled
+                                className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:outline-none"
+                                value={profileData.email}
+                                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                                required
                             />
                         </div>
                         <div>
@@ -167,15 +171,6 @@ export default function Settings() {
                         </button>
                     </form>
                 </div>
-            </div>
-
-            {/* Info Footer */}
-            <div className="mt-8 rounded-2xl bg-primary-50 p-6 border border-primary/10">
-                <p className="text-sm text-primary leading-relaxed opacity-80">
-                    <strong className="block mb-1">Note:</strong>
-                    Role-based permissions (<b>{user?.role}</b>) and branch assignments (<b>{user?.branchId ? `Branch #${user.branchId}` : 'Main Branch'}</b>)
-                    can only be modified by a system administrator. If you need to change these details, please contact the main office.
-                </p>
             </div>
         </div>
     );
