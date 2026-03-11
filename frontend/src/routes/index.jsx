@@ -8,6 +8,7 @@ import DashboardLayout from '@/layouts/DashboardLayout';
 // Pages
 import Landing from '@/pages/Landing';
 import Login from '@/pages/Login';
+import Franchise from '@/pages/Franchise';
 import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
 
@@ -44,6 +45,7 @@ const router = createBrowserRouter([
         element: <MainLayout />,
         children: [
             { index: true, element: <Landing /> },
+            { path: 'franchise', element: <Franchise /> },
         ],
     },
     {

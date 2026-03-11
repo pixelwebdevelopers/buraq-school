@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { HiMenuAlt3, HiX } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import logo from '@/assets/images/logo.png';
 
 const NAV_LINKS = [
-    { label: 'Home', href: '#home' },
+    { label: 'Home', href: '/' },
     { label: 'About Us', href: '#about' },
     { label: 'Branches', href: '#branches' },
+    { label: 'Franchise', href: '/franchise' },
     { label: 'Contact Us', href: '#contact' },
 ];
 
@@ -17,6 +18,7 @@ const NAV_LINKS = [
  */
 export default function Header() {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -27,10 +29,19 @@ export default function Header() {
     }, []);
 
     const handleNavClick = (e, href) => {
-        e.preventDefault();
-        setMobileOpen(false);
-        const el = document.querySelector(href);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        if (href.startsWith('#')) {
+            e.preventDefault();
+            setMobileOpen(false);
+            const el = document.querySelector(href);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                // If on another page, go home first then scroll
+                navigate('/' + href);
+            }
+        } else {
+            setMobileOpen(false);
+        }
     };
 
     return (
@@ -57,15 +68,27 @@ export default function Header() {
                 {/* Desktop Navigation */}
                 <nav className="hidden items-center gap-1 lg:flex">
                     {NAV_LINKS.map((link) => (
-                        <a
-                            key={link.label}
-                            href={link.href}
-                            onClick={(e) => handleNavClick(e, link.href)}
-                            className="relative px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:text-primary group"
-                        >
-                            {link.label}
-                            <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
-                        </a>
+                        link.href.startsWith('/') ? (
+                            <Link
+                                key={link.label}
+                                to={link.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="relative px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:text-primary group"
+                            >
+                                {link.label}
+                                <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
+                            </Link>
+                        ) : (
+                            <a
+                                key={link.label}
+                                href={link.href}
+                                onClick={(e) => handleNavClick(e, link.href)}
+                                className="relative px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:text-primary group"
+                            >
+                                {link.label}
+                                <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
+                            </a>
+                        )
                     ))}
                     {user ? (
                         <Link
@@ -101,14 +124,25 @@ export default function Header() {
             >
                 <nav className="flex flex-col gap-1 px-4 py-4">
                     {NAV_LINKS.map((link) => (
-                        <a
-                            key={link.label}
-                            href={link.href}
-                            onClick={(e) => handleNavClick(e, link.href)}
-                            className="rounded-lg px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-primary-50 hover:text-primary"
-                        >
-                            {link.label}
-                        </a>
+                        link.href.startsWith('/') ? (
+                            <Link
+                                key={link.label}
+                                to={link.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="rounded-lg px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-primary-50 hover:text-primary"
+                            >
+                                {link.label}
+                            </Link>
+                        ) : (
+                            <a
+                                key={link.label}
+                                href={link.href}
+                                onClick={(e) => handleNavClick(e, link.href)}
+                                className="rounded-lg px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-primary-50 hover:text-primary"
+                            >
+                                {link.label}
+                            </a>
+                        )
                     ))}
                     {user ? (
                         <Link
