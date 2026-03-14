@@ -74,6 +74,16 @@ const feeService = {
     },
 
     /**
+     * Get bulk family vouchers for collective printing
+     * @param {Object} params - { branchId, currentClass, month, year }
+     * @returns {Promise<Object>}
+     */
+    getBulkFamilyFees: async (params) => {
+        const response = await api.get('/fees/bulk-family', { params });
+        return response.data;
+    },
+
+    /**
      * Get report of students with pending balances
      * @param {Object} params - { branchId, currentClass }
      * @returns {Promise<Object>}
@@ -90,6 +100,24 @@ const feeService = {
      */
     deleteVoucher: async (voucherId) => {
         const response = await api.delete(`/fees/${voucherId}`);
+        return response.data;
+    },
+
+    /**
+     * Collect bulk payment for a family or student
+     * @param {Object} data - { familyId, studentId, amount }
+     */
+    collectBulkPayment: async (data) => {
+        const response = await api.post('/fees/collect-bulk', data);
+        return response.data;
+    },
+
+    /**
+     * Apply bulk discount for a family or student
+     * @param {Object} data - { familyId, studentId, amount }
+     */
+    applyBulkDiscount: async (data) => {
+        const response = await api.post('/fees/apply-discount', data);
         return response.data;
     }
 };

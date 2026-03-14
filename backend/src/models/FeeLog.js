@@ -9,6 +9,8 @@ module.exports = (sequelize, DataTypes) => {
         monthlyFee: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
         academyFee: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
         labMiscFee: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
+        extraChargeName: { type: DataTypes.STRING(255), allowNull: true },
+        extraChargeAmount: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
         paidAmount: { type: DataTypes.DECIMAL(12, 2), defaultValue: 0 },
         status: { type: DataTypes.STRING(30), defaultValue: 'PENDING' },
         type: { type: DataTypes.STRING(30), allowNull: false },

@@ -1,18 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import feeService from '@/services/feeService';
-import { FaSync, FaPrint, FaExclamationTriangle, FaCheckCircle, FaSpinner, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaSync, FaPrint, FaExclamationTriangle, FaCheckCircle, FaSpinner, FaUsers } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import BulkPrintVouchers from './BulkPrintVouchers';
+import BulkPrintFamilyVouchers from './BulkPrintFamilyVouchers';
 import Pagination from '@/components/common/Pagination';
 
 export default function VoucherManager({ filters }) {
     const [vouchers, setVouchers] = useState([]);
+    const [familyVouchers, setFamilyVouchers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [fetchingFamily, setFetchingFamily] = useState(false);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ totalPages: 0, totalCount: 0 });
+    const [extraName, setExtraName] = useState('');
+    const [extraAmount, setExtraAmount] = useState('');
     const printRef = useRef();
+    const familyPrintRef = useRef();
 
     const fetchVouchers = useCallback(async () => {
         if (!filters.branchId || !filters.currentClass) return;
@@ -44,8 +50,14 @@ export default function VoucherManager({ filters }) {
 
         setGenerating(true);
         try {
-            const result = await feeService.bulkGenerateVouchers(filters);
+            const result = await feeService.bulkGenerateVouchers({
+                ...filters,
+                extraChargeName: extraName,
+                extraChargeAmount: parseFloat(extraAmount || 0)
+            });
             toast.success(result.message);
+            setExtraName('');
+            setExtraAmount('');
             fetchVouchers();
         } catch (error) {
             console.error("Bulk generation error:", error);
@@ -66,6 +78,42 @@ export default function VoucherManager({ filters }) {
         `
     });
 
+    const handleFamilyPrint = useReactToPrint({
+        contentRef: familyPrintRef,
+        documentTitle: `Family_Vouchers_${filters.month}_${filters.year}`,
+        pageStyle: `
+            @page { size: landscape; margin: 0; }
+            @media print {
+                body { -webkit-print-color-adjust: exact; padding: 0 !important; margin: 0 !important; }
+            }
+        `
+    });
+
+    const triggerFamilyPrint = async () => {
+        if (!filters.branchId || !filters.currentClass) return;
+        
+        setFetchingFamily(true);
+        try {
+            const result = await feeService.getBulkFamilyFees(filters);
+            if (result.success) {
+                if (result.data.length === 0) {
+                    toast.error("No family vouchers found for this selection.");
+                    return;
+                }
+                setFamilyVouchers(result.data);
+                // Use a small timeout to ensure data is rendered before printing
+                setTimeout(() => {
+                    handleFamilyPrint();
+                }, 500);
+            }
+        } catch (error) {
+            console.error("Family print error:", error);
+            toast.error("Failed to fetch family vouchers.");
+        } finally {
+            setFetchingFamily(false);
+        }
+    };
+
     return (
         <div className="p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -73,7 +121,24 @@ export default function VoucherManager({ filters }) {
                     <h3 className="text-lg font-bold text-gray-800">Voucher Management</h3>
                     <p className="text-xs text-gray-500 mt-0.5">Generate and print vouchers in bulk for the selected period.</p>
                 </div>
-                <div className="flex gap-3 w-full sm:w-auto">
+                <div className="flex flex-wrap gap-3 w-full sm:w-auto items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <div className="flex items-center gap-2 group">
+                        <input
+                            type="text"
+                            placeholder="Extra (e.g. Exam)"
+                            value={extraName}
+                            onChange={(e) => setExtraName(e.target.value)}
+                            className="w-32 rounded-lg border border-gray-300 py-1.5 px-3 text-xs outline-none focus:border-orange-500 font-bold"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Amount"
+                            value={extraAmount}
+                            onChange={(e) => setExtraAmount(e.target.value)}
+                            className="w-20 rounded-lg border border-gray-300 py-1.5 px-3 text-xs outline-none focus:border-orange-500 font-bold"
+                        />
+                    </div>
+                    <div className="h-6 w-[1px] bg-gray-300 mx-1 hidden sm:block"></div>
                     <button
                         onClick={handleBulkGenerate}
                         disabled={generating || !filters.branchId}
@@ -89,6 +154,14 @@ export default function VoucherManager({ filters }) {
                     >
                         <FaPrint />
                         Print All ({vouchers.length})
+                    </button>
+                    <button
+                        onClick={triggerFamilyPrint}
+                        disabled={fetchingFamily || !filters.branchId || !filters.currentClass}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-md transition-all hover:bg-emerald-700 disabled:bg-gray-300"
+                    >
+                        {fetchingFamily ? <FaSpinner className="animate-spin" /> : <FaUsers />}
+                        {fetchingFamily ? 'Fetching...' : 'Print Family Vouchers'}
                     </button>
                 </div>
             </div>
@@ -152,9 +225,10 @@ export default function VoucherManager({ filters }) {
                 </>
             )}
 
-            {/* Hidden component for printing - Using absolute positioning to hide from screen */}
+            {/* Hidden components for printing - Using absolute positioning to hide from screen */}
             <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
                 <BulkPrintVouchers ref={printRef} vouchers={vouchers} />
+                <BulkPrintFamilyVouchers ref={familyPrintRef} familyGroups={familyVouchers} />
             </div>
         </div>
     );

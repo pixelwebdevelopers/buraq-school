@@ -49,7 +49,6 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
 
     const totalAmount = parseFloat(voucher.amount);
     const paidAmount = parseFloat(voucher.paidAmount || 0);
-    const balance = totalAmount - paidAmount;
 
     // We will render three identical slips: School Copy, Student Copy, Bank Copy
     const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
@@ -109,29 +108,46 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                                 <td className="py-1 mt-1 text-right font-bold">{parseFloat(voucher.labMiscFee).toFixed(2)}</td>
                             </tr>
                         )}
+                        {parseFloat(voucher.extraChargeAmount) > 0 && (
+                            <tr>
+                                <td className="py-1 mt-1">{voucher.extraChargeName || 'Extra Fee'}</td>
+                                <td className="py-1 mt-1 text-right font-bold">{parseFloat(voucher.extraChargeAmount).toFixed(2)}</td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>
 
             <div>
-                {/* Totals */}
-                <div className="flex flex-col gap-1 text-[11px] font-mono mb-4 bg-gray-50 p-2 rounded border border-gray-100">
-                    <div className="flex justify-between border-b border-gray-200 pb-1">
-                        <span className="font-bold text-gray-800 uppercase tracking-tighter">Total Amount:</span>
-                        <span className="font-black text-gray-900 underline">Rs. {totalAmount.toFixed(2)}</span>
+                {/* Totals & Balance Section */}
+                <div className="flex flex-col gap-1 text-[11px] font-mono mb-4 bg-gray-50 p-2 rounded border border-gray-100 italic">
+                    {/* Previous Outstanding */}
+                    <div className="flex justify-between border-b border-gray-200 pb-1 text-gray-600">
+                        <span className="font-bold uppercase tracking-tighter text-[9px]">Previous Outstanding:</span>
+                        <span className="font-bold">Rs. {parseFloat(voucher.previousBalance || 0).toFixed(2)}</span>
                     </div>
+
+                    {/* Current Bill */}
+                    <div className="flex justify-between border-b border-gray-200 py-0.5 text-gray-600">
+                        <span className="font-bold uppercase tracking-tighter text-[9px]">Current Month Bill:</span>
+                        <span className="font-bold">Rs. {totalAmount.toFixed(2)}</span>
+                    </div>
+
+                    {/* Paid (This Month) */}
                     {paidAmount > 0 && (
                         <div className="flex justify-between border-b border-gray-200 py-0.5 text-green-700">
-                            <span className="font-bold uppercase tracking-tighter text-[9px]">Amount Paid:</span>
+                            <span className="font-bold uppercase tracking-tighter text-[9px]">Paid (This Month):</span>
                             <span className="font-bold">Rs. {paidAmount.toFixed(2)}</span>
                         </div>
                     )}
-                    {balance > 0 && paidAmount > 0 && (
-                        <div className="flex justify-between py-0.5 text-red-700">
-                            <span className="font-bold uppercase tracking-tighter text-[9px]">Remaining Balance:</span>
-                            <span className="font-bold underline">Rs. {balance.toFixed(2)}</span>
-                        </div>
-                    )}
+
+                    {/* TOTAL PAYABLE */}
+                    <div className="flex justify-between bg-slate-900 text-white px-2 py-1.5 rounded mt-1 shadow-sm">
+                        <span className="font-black uppercase tracking-widest text-[10px]">Total Payable:</span>
+                        <span className="font-black underline decoration-indigo-400">
+                            Rs. {(parseFloat(voucher.previousBalance || 0) + totalAmount - paidAmount).toFixed(2)}
+                        </span>
+                    </div>
                 </div>
 
                 {/* Signatures */}

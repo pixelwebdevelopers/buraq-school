@@ -22,6 +22,9 @@ router.post('/family/generate', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeCon
 // Bulk management routes (Allowed for STAFF/PRINCIPAL/ADMIN)
 router.post('/bulk-generate', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.bulkGenerateVouchers);
 router.get('/bulk', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.getBulkFees);
+router.get('/bulk-family', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.getBulkFamilyFees);
+router.post('/collect-bulk', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.collectBulkPayment);
+router.post('/apply-discount', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeController.applyBulkDiscount);
 
 // Reporting routes (Restricted to ADMIN/PRINCIPAL)
 router.get('/report/pending', authorize('ADMIN', 'PRINCIPAL'), feeController.getPendingFeesReport);

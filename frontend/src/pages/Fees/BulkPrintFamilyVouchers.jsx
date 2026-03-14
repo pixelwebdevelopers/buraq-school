@@ -1,99 +1,19 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
-import { FaPrint, FaTimes, FaSpinner } from 'react-icons/fa';
+import React from 'react';
 import dayjs from 'dayjs';
-import familyService from '@/services/familyService';
 
-export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
-    const componentRef = useRef();
-    const [allStudents, setAllStudents] = useState([]);
-    const [loading, setLoading] = useState(true);
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    useEffect(() => {
-        const fetchStudents = async () => {
-            if (!family?.id) return;
-            try {
-                const res = await familyService.getFamilyStudents(family.id);
-                if (res.success) {
-                    // Only active students
-                    setAllStudents(res.data.filter(s => s.status === 'ACTIVE'));
-                }
-            } catch (err) {
-                console.error("Error fetching siblings for print:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (isOpen && family) {
-            fetchStudents();
-        }
-    }, [isOpen, family]);
-
-    const handlePrint = useReactToPrint({
-        contentRef: componentRef,
-        documentTitle: `Family_Voucher_${family?.fatherName || 'Student'}_${group?.month}_${group?.year}`,
-        pageStyle: `
-            @page { 
-                size: landscape; 
-                margin: 0; 
-            }
-            @media print {
-                body { 
-                    -webkit-print-color-adjust: exact; 
-                    padding: 0 !important; 
-                    margin: 0 !important; 
-                }
-                .print-container {
-                    width: 297mm;
-                    height: 210mm;
-                    padding: 8mm !important;
-                    box-sizing: border-box;
-                    display: flex !important;
-                    flex-direction: row !important;
-                    gap: 5mm !important;
-                    overflow: hidden !important;
-                    background: white !important;
-                }
-                .slip {
-                    flex: 1;
-                    height: 100%;
-                    border: 1px solid #000 !important;
-                    padding: 5mm !important;
-                    box-sizing: border-box;
-                    page-break-inside: avoid;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    justify-content: space-between !important;
-                    overflow: hidden !important;
-                }
-                table {
-                    width: 100% !important;
-                    border-collapse: collapse !important;
-                }
-                th, td {
-                    padding: 1mm !important;
-                    border: 0.1mm solid #ccc !important;
-                }
-            }
-        `
-    });
-
-    if (!isOpen || !group || !family) return null;
-
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const FamilyVoucherSlip = ({ family, students, group, copyType }) => {
     const monthName = monthNames[group.month - 1];
 
-    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
-
-    // Cross-reference all students with vouchers in the group
+    // Create a map of student ID to voucher for easy lookup
     const studentVoucherMap = {};
     group.vouchers.forEach(v => {
         studentVoucherMap[v.studentId] = v;
     });
 
-    const renderSlip = (copyType, index) => (
-        <div key={index} className="slip flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '9px' }}>
+    return (
+        <div className="slip flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '9px' }}>
             <div className="overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-1 mb-2">
@@ -124,7 +44,7 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {allStudents.map(student => {
+                            {students.map(student => {
                                 const voucher = studentVoucherMap[student.id];
                                 return (
                                     <tr key={student.id} className="border-b border-gray-200">
@@ -201,57 +121,38 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
             </div>
         </div>
     );
+};
 
+const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
+    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
 
     return (
-        <div className="fixed inset-0 z-[70] flex p-4 backdrop-blur-sm bg-black/70 overflow-hidden">
-            <div className="w-full h-full flex flex-col mx-auto max-w-6xl relative">
-                {/* Modal Header actions */}
-                <div className="flex items-center justify-between mb-4 shrink-0 bg-white p-4 rounded-xl shadow-lg border border-gray-100">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            Collective Print Preview
-                            <span className="text-sm font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{monthName} {group.year}</span>
-                        </h2>
-                        <p className="text-sm text-gray-500">Printing combined fee voucher for all siblings in the family.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handlePrint}
-                            disabled={loading}
-                            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-lg font-bold shadow-md transition-colors disabled:opacity-50"
-                        >
-                            {loading ? <FaSpinner className="animate-spin" /> : <FaPrint />} Print Collective
-                        </button>
-                        <button
-                            onClick={onClose}
-                            className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 bg-white"
-                        >
-                            <FaTimes className="text-xl" />
-                        </button>
-                    </div>
+        <div ref={ref} className="bulk-print-container">
+            {familyGroups.map((item, index) => (
+                <div key={index} className="print-page" style={{
+                    height: '210mm',
+                    width: '297mm',
+                    padding: '8mm',
+                    boxSizing: 'border-box',
+                    pageBreakAfter: 'always',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '5mm',
+                    backgroundColor: 'white'
+                }}>
+                    {copyTypes.map((type, i) => (
+                        <FamilyVoucherSlip
+                            key={`${index}-${i}`}
+                            family={item.family}
+                            students={item.students}
+                            group={item.group}
+                            copyType={type}
+                        />
+                    ))}
                 </div>
-
-                {/* Print Preview Container */}
-                <div className="flex-1 overflow-auto bg-gray-100/50 rounded-xl p-4 sm:p-8 flex items-start justify-center">
-                    {loading ? (
-                        <div className="h-40 flex flex-col items-center justify-center gap-2">
-                            <FaSpinner className="text-4xl text-amber-500 animate-spin" />
-                            <p className="font-semibold text-gray-500">Fetching sibling data...</p>
-                        </div>
-                    ) : (
-                        <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
-                            <div className="flex flex-col md:flex-row gap-4 h-full w-full justify-between print:flex-row print:gap-4 print:h-full pb-8">
-                                {copyTypes.map((type, i) => renderSlip(type, i))}
-                            </div>
-                            <div className="border-t border-dashed border-gray-300 mt-2 text-center text-[10px] text-gray-400 print:hidden py-1">
-                                ✂-------------------------------------------------- Fold or Cut Here --------------------------------------------------✂
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+            ))}
         </div>
     );
+});
 
-}
+export default BulkPrintFamilyVouchers;

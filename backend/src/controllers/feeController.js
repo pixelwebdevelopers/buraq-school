@@ -18,29 +18,44 @@ exports.getStudentFees = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
         }
 
-        const { count, rows } = await FeeLog.findAndCountAll({
+        const { count, rows: currentLogs } = await FeeLog.findAndCountAll({
             where: { studentId },
             order: [['year', 'DESC'], ['month', 'DESC'], ['createdAt', 'DESC']],
             limit,
             offset
         });
 
-        // Calculate total pending balance across all unpaid/partial vouchers
+        // Fetch ALL pending logs to calculate total balance and previous balances
         const allPendingLogs = await FeeLog.findAll({
             where: {
                 studentId,
                 status: { [Op.in]: ['PENDING', 'PARTIAL'] }
-            }
+            },
+            order: [['year', 'ASC'], ['month', 'ASC']]
         });
 
         const totalBalance = allPendingLogs.reduce((acc, log) => {
             return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
         }, 0);
 
+        // Enhance rows with previousBalance
+        const enhancedRows = currentLogs.map(log => {
+            const l = log.toJSON();
+            // previous balance is the sum of all pending logs that are OLDER than the current log's month/year
+            const prevBalance = allPendingLogs.filter(p => {
+                if (p.year < l.year) return true;
+                if (p.year === l.year && p.month < l.month) return true;
+                return false;
+            }).reduce((acc, p) => acc + (parseFloat(p.amount) - parseFloat(p.paidAmount || 0)), 0);
+            
+            l.previousBalance = prevBalance;
+            return l;
+        });
+
         res.status(200).json({
             success: true,
             data: {
-                vouchers: rows,
+                vouchers: enhancedRows,
                 totalBalance,
                 totalCount: count,
                 totalPages: Math.ceil(count / limit),
@@ -55,7 +70,7 @@ exports.getStudentFees = async (req, res) => {
 
 exports.generateVoucher = async (req, res) => {
     try {
-        const { studentId, month, year } = req.body;
+        const { studentId, month, year, extraChargeName, extraChargeAmount } = req.body;
 
         const student = await Student.findByPk(studentId);
         if (!student) {
@@ -67,6 +82,11 @@ exports.generateVoucher = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
         }
 
+        // Only generate for active students
+        if (student.status !== 'ACTIVE') {
+            return res.status(400).json({ success: false, message: `Cannot generate voucher for student: student is currently ${student.status}.` });
+        }
+
         // Check if voucher already exists for this month/year
         const existingLog = await FeeLog.findOne({
             where: { studentId, month, year }
@@ -76,11 +96,12 @@ exports.generateVoucher = async (req, res) => {
             return res.status(400).json({ success: false, message: `Voucher already exists for ${month}/${year}.` });
         }
 
-        // Calculate total amount based on student's current assigned fees
+        // Calculate total amount based on student's current assigned fees + extras
         const monthlyFee = parseFloat(student.monthlyFee || 0);
         const academyFee = parseFloat(student.academyFee || 0);
         const labMiscFee = parseFloat(student.labMiscFee || 0);
-        const totalAmount = monthlyFee + academyFee + labMiscFee;
+        const extraAmount = parseFloat(extraChargeAmount || 0);
+        const totalAmount = monthlyFee + academyFee + labMiscFee + extraAmount;
 
         // Ensure totalAmount is greater than 0
         if (totalAmount <= 0) {
@@ -95,6 +116,8 @@ exports.generateVoucher = async (req, res) => {
             monthlyFee,
             academyFee,
             labMiscFee,
+            extraChargeName,
+            extraChargeAmount: extraAmount,
             amount: totalAmount,
             paidAmount: 0,
             status: 'PENDING',
@@ -193,6 +216,19 @@ exports.getFamilyFees = async (req, res) => {
             order: [['year', 'DESC'], ['month', 'DESC'], ['createdAt', 'DESC']]
         });
 
+        // Fetch ALL pending logs to calculate total balance and previous balances
+        const allPendingLogs = await FeeLog.findAll({
+            where: {
+                familyId,
+                status: { [Op.in]: ['PENDING', 'PARTIAL'] }
+            },
+            order: [['year', 'ASC'], ['month', 'ASC']]
+        });
+
+        const totalBalance = allPendingLogs.reduce((acc, log) => {
+            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+        }, 0);
+
         // Group by Month and Year
         const grouped = {};
         feeLogs.forEach(log => {
@@ -216,24 +252,27 @@ exports.getFamilyFees = async (req, res) => {
             return b.month - a.month;
         });
 
+        // Enhance grouped records with previousBalance
+        const enhancedGroupedArray = groupedArray.map(group => {
+            // previous balance is the sum of all pending logs that are OLDER than the current group's month/year
+            const prevBalance = allPendingLogs.filter(p => {
+                if (p.year < group.year) return true;
+                if (p.year === group.year && p.month < group.month) return true;
+                return false;
+            }).reduce((acc, p) => acc + (parseFloat(p.amount) - parseFloat(p.paidAmount || 0)), 0);
+            
+            return {
+                ...group,
+                previousBalance: prevBalance
+            };
+        });
+
         // Pagination for Grouped Data
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const paginatedHistory = groupedArray.slice(startIndex, endIndex);
-
-        // Calculate total collective balance
-        const allPendingLogs = await FeeLog.findAll({
-            where: {
-                familyId,
-                status: { [Op.in]: ['PENDING', 'PARTIAL'] }
-            }
-        });
-
-        const totalBalance = allPendingLogs.reduce((acc, log) => {
-            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
-        }, 0);
+        const paginatedHistory = enhancedGroupedArray.slice(startIndex, endIndex);
 
         res.status(200).json({
             success: true,
@@ -241,8 +280,8 @@ exports.getFamilyFees = async (req, res) => {
                 history: paginatedHistory,
                 totalBalance,
                 pagination: {
-                    totalCount: groupedArray.length,
-                    totalPages: Math.ceil(groupedArray.length / limit),
+                    totalCount: enhancedGroupedArray.length,
+                    totalPages: Math.ceil(enhancedGroupedArray.length / limit),
                     currentPage: page,
                     limit
                 }
@@ -256,7 +295,7 @@ exports.getFamilyFees = async (req, res) => {
 
 exports.generateFamilyVouchers = async (req, res) => {
     try {
-        const { familyId, month, year } = req.body;
+        const { familyId, month, year, extraChargeName, extraChargeAmount } = req.body;
 
         const family = await Family.findByPk(familyId);
         if (!family) {
@@ -277,6 +316,8 @@ exports.generateFamilyVouchers = async (req, res) => {
             skipped: []
         };
 
+        const extraAmount = parseFloat(extraChargeAmount || 0);
+
         for (const student of students) {
             // Check if voucher already exists
             const existing = await FeeLog.findOne({
@@ -291,7 +332,16 @@ exports.generateFamilyVouchers = async (req, res) => {
             const monthlyFee = parseFloat(student.monthlyFee || 0);
             const academyFee = parseFloat(student.academyFee || 0);
             const labMiscFee = parseFloat(student.labMiscFee || 0);
-            const totalAmount = monthlyFee + academyFee + labMiscFee;
+            
+            // Distribute extra charge evenly OR just add to the first student? 
+            // Usually, family-level extra charges are for the whole family.
+            // Let's add it only if it's the first student in the loop to avoid duplication.
+            let applyExtra = 0;
+            if (results.generated.length === 0) {
+                applyExtra = extraAmount;
+            }
+
+            const totalAmount = monthlyFee + academyFee + labMiscFee + applyExtra;
 
             if (totalAmount > 0) {
                 const voucher = await FeeLog.create({
@@ -302,6 +352,8 @@ exports.generateFamilyVouchers = async (req, res) => {
                     monthlyFee,
                     academyFee,
                     labMiscFee,
+                    extraChargeName: applyExtra > 0 ? extraChargeName : null,
+                    extraChargeAmount: applyExtra,
                     amount: totalAmount,
                     paidAmount: 0,
                     status: 'PENDING',
@@ -327,7 +379,7 @@ exports.generateFamilyVouchers = async (req, res) => {
 
 exports.bulkGenerateVouchers = async (req, res) => {
     try {
-        let { branchId, currentClass, month, year } = req.body;
+        let { branchId, currentClass, month, year, extraChargeName, extraChargeAmount } = req.body;
 
         // Force branch scoping for non-admins
         if (req.user.role !== 'ADMIN') {
@@ -350,6 +402,7 @@ exports.bulkGenerateVouchers = async (req, res) => {
         }
 
         const results = { generated: 0, skipped: 0 };
+        const extraAmount = parseFloat(extraChargeAmount || 0);
 
         for (const student of students) {
             const existing = await FeeLog.findOne({
@@ -364,7 +417,7 @@ exports.bulkGenerateVouchers = async (req, res) => {
             const monthlyFee = parseFloat(student.monthlyFee || 0);
             const academyFee = parseFloat(student.academyFee || 0);
             const labMiscFee = parseFloat(student.labMiscFee || 0);
-            const totalAmount = monthlyFee + academyFee + labMiscFee;
+            const totalAmount = monthlyFee + academyFee + labMiscFee + extraAmount;
 
             if (totalAmount > 0) {
                 await FeeLog.create({
@@ -375,6 +428,8 @@ exports.bulkGenerateVouchers = async (req, res) => {
                     monthlyFee,
                     academyFee,
                     labMiscFee,
+                    extraChargeName,
+                    extraChargeAmount: extraAmount,
                     amount: totalAmount,
                     paidAmount: 0,
                     status: 'PENDING',
@@ -395,6 +450,117 @@ exports.bulkGenerateVouchers = async (req, res) => {
     } catch (error) {
         console.error('Error in bulk generation:', error);
         res.status(500).json({ success: false, message: 'Error in bulk voucher generation.' });
+    }
+};
+
+// --- NEW COLLECTION & DISCOUNT LOGIC ---
+
+exports.collectBulkPayment = async (req, res) => {
+    try {
+        const { familyId, studentId, amount } = req.body;
+        let totalReceived = parseFloat(amount);
+
+        if (isNaN(totalReceived) || totalReceived <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid payment amount.' });
+        }
+
+        const whereClause = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
+        if (familyId) whereClause.familyId = familyId;
+        if (studentId) whereClause.studentId = studentId;
+
+        // Fetch logs by oldest first
+        const pendingLogs = await FeeLog.findAll({
+            where: whereClause,
+            order: [['year', 'ASC'], ['month', 'ASC'], ['createdAt', 'ASC']]
+        });
+
+        if (pendingLogs.length === 0) {
+            return res.status(400).json({ success: false, message: 'No pending vouchers found.' });
+        }
+
+        const updatedVouchers = [];
+
+        for (const log of pendingLogs) {
+            if (totalReceived <= 0) break;
+
+            const remaining = parseFloat(log.amount) - parseFloat(log.paidAmount || 0);
+            const paymentToApply = Math.min(totalReceived, remaining);
+
+            const newPaidAmount = parseFloat(log.paidAmount || 0) + paymentToApply;
+            log.paidAmount = newPaidAmount;
+            log.status = (newPaidAmount >= parseFloat(log.amount)) ? 'PAID' : 'PARTIAL';
+            
+            await log.save();
+            updatedVouchers.push(log);
+            totalReceived -= paymentToApply;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Payment collected. Total amount applied across ${updatedVouchers.length} vouchers.`,
+            data: { updatedCount: updatedVouchers.length }
+        });
+    } catch (error) {
+        console.error('Error in collectBulkPayment:', error);
+        res.status(500).json({ success: false, message: 'Error collecting payment.' });
+    }
+};
+
+exports.applyBulkDiscount = async (req, res) => {
+    try {
+        const { familyId, studentId, amount } = req.body;
+        let discountToApply = parseFloat(amount);
+
+        if (isNaN(discountToApply) || discountToApply <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid discount amount.' });
+        }
+
+        const whereClause = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
+        if (familyId) whereClause.familyId = familyId;
+        if (studentId) whereClause.studentId = studentId;
+
+        // Fetch logs by oldest first
+        const pendingLogs = await FeeLog.findAll({
+            where: whereClause,
+            order: [['year', 'ASC'], ['month', 'ASC'], ['createdAt', 'ASC']]
+        });
+
+        if (pendingLogs.length === 0) {
+            return res.status(400).json({ success: false, message: 'No pending vouchers found to discount.' });
+        }
+
+        const updatedVouchers = [];
+
+        for (const log of pendingLogs) {
+            if (discountToApply <= 0) break;
+
+            const currentRemaining = parseFloat(log.amount) - parseFloat(log.paidAmount || 0);
+            const reduction = Math.min(discountToApply, currentRemaining);
+
+            // Reduce the total billed amount
+            const newTotalAmount = parseFloat(log.amount) - reduction;
+            log.amount = newTotalAmount;
+            
+            // Re-calculate status if paidAmount now equals or exceeds new amount
+            if (parseFloat(log.paidAmount || 0) >= newTotalAmount && newTotalAmount > 0) {
+                log.status = 'PAID';
+            } else if (newTotalAmount === 0) {
+                log.status = 'PAID';
+            }
+
+            await log.save();
+            updatedVouchers.push(log);
+            discountToApply -= reduction;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Discount applied. Total reduction distributed across ${updatedVouchers.length} vouchers.`,
+            data: { updatedCount: updatedVouchers.length }
+        });
+    } catch (error) {
+        console.error('Error in applyBulkDiscount:', error);
+        res.status(500).json({ success: false, message: 'Error applying discount.' });
     }
 };
 
@@ -554,6 +720,157 @@ exports.getPendingFeesReport = async (req, res) => {
     } catch (error) {
         console.error('Error generating report:', error);
         res.status(500).json({ success: false, message: 'Error generating pending fees report.' });
+    }
+};
+
+const getClassPriority = (className) => {
+    if (!className) return 0;
+    const c = className.toLowerCase().replace(/\s/g, '');
+    if (c === 'playgroup') return 1;
+    if (c === 'nursery') return 2;
+    if (c === 'prep') return 3;
+    if (c === 'firstyear') return 14;
+    if (c === 'secondyear') return 15;
+    
+    const numMatch = c.match(/\d+/);
+    if (numMatch) return parseInt(numMatch[0]) + 3; // Class 1 becomes 4, etc.
+    return 0;
+};
+
+exports.getBulkFamilyFees = async (req, res) => {
+    try {
+        let { branchId, currentClass, month, year } = req.query;
+
+        // Force branch scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
+
+        if (!branchId || !month || !year) {
+            return res.status(400).json({ success: false, message: 'Branch, month, and year are required.' });
+        }
+
+        const studentWhere = { branchId, status: 'ACTIVE' };
+        if (currentClass) {
+            studentWhere.currentClass = currentClass;
+        }
+
+        // 1. Get all students matches the filter (e.g. Class 5 students)
+        const targetStudents = await Student.findAll({
+            where: studentWhere,
+            include: [{ model: Family, attributes: ['id', 'fatherName', 'fatherPhone'] }]
+        });
+
+        if (targetStudents.length === 0) {
+            return res.status(200).json({ success: true, data: [] });
+        }
+
+        const familiesToProcess = [];
+        const seenFamilyIds = new Set();
+
+        for (const student of targetStudents) {
+            if (seenFamilyIds.has(student.familyId)) continue;
+            seenFamilyIds.add(student.familyId);
+
+            // 2. For each family, find ALL siblings in the same branch
+            const siblings = await Student.findAll({
+                where: { familyId: student.familyId, branchId, status: 'ACTIVE' }
+            });
+
+            // 3. Sort siblings by class priority (descending: highest class first)
+            // If classes are equal, sort by ID or Name as a tie-breaker (to ensure only one sibling gets selected)
+            const sortedSiblings = siblings.sort((a, b) => {
+                const pA = getClassPriority(a.currentClass);
+                const pB = getClassPriority(b.currentClass);
+                if (pB !== pA) return pB - pA;
+                return b.id - a.id; // Secondary sort by ID for consistency
+            });
+
+            const representativeSibling = sortedSiblings[0];
+
+            // 4. IMPORTANT: Only include this family if the representative sibling's class matches the current filter
+            // This prevents duplicate printing across different classes
+            if (currentClass && representativeSibling.currentClass !== currentClass) {
+                continue;
+            }
+
+            // 5. Ensure all siblings have a voucher for this month/year
+            const vouchers = [];
+            let collectiveAmount = 0;
+            let collectivePaid = 0;
+
+            for (const sib of sortedSiblings) {
+                let voucher = await FeeLog.findOne({
+                    where: { studentId: sib.id, month, year }
+                });
+
+                if (!voucher) {
+                    // Generate missing voucher automatically for the family print
+                    const monthlyFee = parseFloat(sib.monthlyFee || 0);
+                    const academyFee = parseFloat(sib.academyFee || 0);
+                    const labMiscFee = parseFloat(sib.labMiscFee || 0);
+                    const totalAmount = monthlyFee + academyFee + labMiscFee;
+
+                    if (totalAmount > 0) {
+                        voucher = await FeeLog.create({
+                            familyId: sib.familyId,
+                            studentId: sib.id,
+                            month,
+                            year,
+                            monthlyFee,
+                            academyFee,
+                            labMiscFee,
+                            amount: totalAmount,
+                            paidAmount: 0,
+                            status: 'PENDING',
+                            type: 'monthly_voucher',
+                            description: `Monthly Fee Voucher for ${month}/${year}`
+                        });
+                    }
+                }
+
+                if (voucher) {
+                    vouchers.push(voucher);
+                    collectiveAmount += parseFloat(voucher.amount);
+                    collectivePaid += parseFloat(voucher.paidAmount || 0);
+                }
+            }
+
+            // 6. Calculate collective previous balance
+            const allPendingLogs = await FeeLog.findAll({
+                where: {
+                    familyId: student.familyId,
+                    status: { [Op.in]: ['PENDING', 'PARTIAL'] }
+                }
+            });
+
+            const collectivePrevBalance = allPendingLogs.filter(p => {
+                if (parseInt(p.year) < parseInt(year)) return true;
+                if (parseInt(p.year) === parseInt(year) && parseInt(p.month) < parseInt(month)) return true;
+                return false;
+            }).reduce((acc, p) => acc + (parseFloat(p.amount) - parseFloat(p.paidAmount || 0)), 0);
+
+            familiesToProcess.push({
+                family: student.Family,
+                students: sortedSiblings,
+                group: {
+                    month,
+                    year,
+                    totalAmount: collectiveAmount,
+                    totalPaid: collectivePaid,
+                    previousBalance: collectivePrevBalance,
+                    vouchers
+                }
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: familiesToProcess
+        });
+    } catch (error) {
+        console.error('Error in getBulkFamilyFees:', error);
+        res.status(500).json({ success: false, message: 'Error fetching bulk family vouchers.' });
     }
 };
 
