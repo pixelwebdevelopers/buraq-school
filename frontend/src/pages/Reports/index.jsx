@@ -21,20 +21,10 @@ const reportCards = [
     {
         id: 'collection-history',
         title: 'Fee Collection Summary',
-        description: 'Analyze daily and monthly collection trends across your institution (Coming Soon).',
+        description: 'Analyze daily and monthly collection trends across your institution.',
         icon: <FaChartLine className="text-green-500" />,
-        path: '#',
-        category: 'Finance',
-        disabled: true
-    },
-    {
-        id: 'student-strength',
-        title: 'Enrollment Statistics',
-        description: 'Overview of student distribution by class, gender, and branch (Coming Soon).',
-        icon: <FaUsers className="text-blue-500" />,
-        path: '#',
-        category: 'Academic',
-        disabled: true
+        path: '/dashboard/reports/collection-summary',
+        category: 'Finance'
     }
 ];
 

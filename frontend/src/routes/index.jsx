@@ -22,6 +22,7 @@ import Fees from '@/pages/Fees';
 import ReportsHub from '@/pages/Reports';
 import PendingFeesReport from '@/pages/Reports/PendingFees';
 import FamilyPendingFeesReport from '@/pages/Reports/FamilyPendingFees';
+import CollectionSummaryReport from '@/pages/Reports/CollectionSummary';
 import Users from '@/pages/Users';
 import Settings from '@/pages/Settings';
 
@@ -73,7 +74,8 @@ const router = createBrowserRouter([
                 children: [
                     { index: true, element: <ReportsHub /> },
                     { path: 'pending-fees', element: <PendingFeesReport /> },
-                    { path: 'family-pending-fees', element: <FamilyPendingFeesReport /> }
+                    { path: 'family-pending-fees', element: <FamilyPendingFeesReport /> },
+                    { path: 'collection-summary', element: <CollectionSummaryReport /> }
                 ]
             },
         ],

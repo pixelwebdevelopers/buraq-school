@@ -29,6 +29,7 @@ router.post('/apply-discount', authorize('ADMIN', 'PRINCIPAL', 'STAFF'), feeCont
 // Reporting routes (Restricted to ADMIN/PRINCIPAL)
 router.get('/report/pending', authorize('ADMIN', 'PRINCIPAL'), feeController.getPendingFeesReport);
 router.get('/report/family-pending', authorize('ADMIN', 'PRINCIPAL'), feeController.getFamilyPendingFeesReport);
+router.get('/report/collection', authorize('ADMIN', 'PRINCIPAL'), feeController.getCollectionReport);
 
 // Delete voucher - Restricted to ADMIN and PRINCIPAL
 router.delete('/:id', authorize('ADMIN', 'PRINCIPAL'), feeController.deleteVoucher);

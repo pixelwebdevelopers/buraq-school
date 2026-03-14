@@ -129,6 +129,16 @@ const feeService = {
     applyBulkDiscount: async (data) => {
         const response = await api.post('/fees/apply-discount', data);
         return response.data;
+    },
+
+    /**
+     * Get fee collection summary report
+     * @param {Object} params - { branchId, startDate, endDate, familyId }
+     * @returns {Promise<Object>}
+     */
+    getCollectionReport: async (params) => {
+        const response = await api.get('/fees/report/collection', { params });
+        return response.data;
     }
 };
 

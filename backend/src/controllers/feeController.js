@@ -1,4 +1,4 @@
-const { FeeLog, Student, Family, Branch } = require('../models');
+const { FeeLog, Student, Family, Branch, FeeCollectionLog, User } = require('../models');
 const { Op } = require('sequelize');
 
 exports.getStudentFees = async (req, res) => {
@@ -178,6 +178,16 @@ exports.payVoucher = async (req, res) => {
         await voucher.update({
             paidAmount: newPaidAmount,
             status: newStatus
+        });
+
+        // Log the collection
+        await FeeCollectionLog.create({
+            familyId: voucher.familyId,
+            studentId: voucher.studentId,
+            feeLogId: voucher.id,
+            amountPaid: newPaidAmount - parseFloat(voucher.paidAmount || 0), // The incremental amount paid
+            receivedById: req.user.id,
+            branchId: voucher.Student?.branchId
         });
 
         res.status(200).json({
@@ -478,6 +488,19 @@ exports.collectBulkPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'No pending vouchers found.' });
         }
 
+        // --- VALIDATION: Prevent overpayment ---
+        const totalOutstanding = pendingLogs.reduce((acc, log) => {
+            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+        }, 0);
+
+        if (totalReceived > totalOutstanding) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Payment amount (Rs. ${totalReceived}) exceeds the total outstanding balance (Rs. ${totalOutstanding.toFixed(2)}).` 
+            });
+        }
+        // ---------------------------------------
+
         const updatedVouchers = [];
 
         for (const log of pendingLogs) {
@@ -491,6 +514,17 @@ exports.collectBulkPayment = async (req, res) => {
             log.status = (newPaidAmount >= parseFloat(log.amount)) ? 'PAID' : 'PARTIAL';
             
             await log.save();
+
+            // Log the collection
+            await FeeCollectionLog.create({
+                familyId: log.familyId,
+                studentId: log.studentId,
+                feeLogId: log.id,
+                amountPaid: paymentToApply,
+                receivedById: req.user.id,
+                branchId: log.Student?.branchId || (await Student.findByPk(log.studentId))?.branchId
+            });
+
             updatedVouchers.push(log);
             totalReceived -= paymentToApply;
         }
@@ -528,6 +562,19 @@ exports.applyBulkDiscount = async (req, res) => {
         if (pendingLogs.length === 0) {
             return res.status(400).json({ success: false, message: 'No pending vouchers found to discount.' });
         }
+
+        // --- VALIDATION: Prevent discount exceeding balance ---
+        const totalOutstanding = pendingLogs.reduce((acc, log) => {
+            return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+        }, 0);
+
+        if (discountToApply > totalOutstanding) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `Discount amount (Rs. ${discountToApply}) exceeds the total outstanding balance (Rs. ${totalOutstanding.toFixed(2)}).` 
+            });
+        }
+        // -----------------------------------------------------
 
         const updatedVouchers = [];
 
@@ -1027,5 +1074,111 @@ exports.deleteVoucher = async (req, res) => {
     } catch (error) {
         console.error('Error deleting voucher:', error);
         res.status(500).json({ success: false, message: 'Error deleting voucher.' });
+    }
+};
+
+exports.getCollectionReport = async (req, res) => {
+    try {
+        let { branchId, startDate, endDate, familyId } = req.query;
+
+        // Default to current date if no dates provided
+        if (!startDate && !endDate) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            startDate = today;
+            endDate = new Date(today);
+            endDate.setHours(23, 59, 59, 999);
+        } else {
+            if (startDate) {
+                startDate = new Date(startDate);
+                startDate.setHours(0, 0, 0, 0);
+            }
+            if (endDate) {
+                endDate = new Date(endDate);
+                endDate.setHours(23, 59, 59, 999);
+            }
+        }
+
+        // Branch-scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
+
+        const where = {};
+        if (branchId) where.branchId = branchId;
+        if (familyId) where.familyId = familyId;
+        
+        if (startDate || endDate) {
+            where.createdAt = {};
+            if (startDate) where.createdAt[Op.gte] = startDate;
+            if (endDate) where.createdAt[Op.lte] = endDate;
+        }
+
+        const logs = await FeeCollectionLog.findAll({
+            where,
+            include: [
+                { model: Family, attributes: ['fatherName', 'fatherPhone'] },
+                { model: Student, attributes: ['name', 'currentClass', 'section'] },
+                { model: User, as: 'receivedBy', attributes: ['name'] },
+                { model: Branch, attributes: ['name'] },
+                { model: FeeLog, attributes: ['month', 'year', 'type'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Group by family and date
+        const groupedLogs = [];
+        const seen = new Map();
+
+        logs.forEach(log => {
+            const dateStr = new Date(log.createdAt).toISOString().split('T')[0];
+            const key = `${log.familyId}-${dateStr}-${log.receivedById}`;
+            
+            if (seen.has(key)) {
+                const index = seen.get(key);
+                groupedLogs[index].amountPaid = (parseFloat(groupedLogs[index].amountPaid) + parseFloat(log.amountPaid)).toFixed(2);
+                
+                // Collect student names if not already there
+                if (log.Student && !groupedLogs[index].studentNames.includes(log.Student.name)) {
+                    groupedLogs[index].studentNames.push(log.Student.name);
+                }
+                // Also track voucher info
+                const vInfo = `${log.FeeLog?.month}/${log.FeeLog?.year}`;
+                if (!groupedLogs[index].vouchers.includes(vInfo)) {
+                    groupedLogs[index].vouchers.push(vInfo);
+                }
+            } else {
+                const l = log.toJSON();
+                l.studentNames = l.Student ? [l.Student.name] : [];
+                l.vouchers = [`${l.FeeLog?.month}/${l.FeeLog?.year}`];
+                seen.set(key, groupedLogs.length);
+                groupedLogs.push(l);
+            }
+        });
+
+        // Calculate summaries
+        const totalAmount = logs.reduce((acc, log) => acc + parseFloat(log.amountPaid), 0);
+        
+        // Group by day for summary chart
+        const dailySummary = {};
+        logs.forEach(log => {
+            const dateStr = new Date(log.createdAt).toISOString().split('T')[0];
+            if (!dailySummary[dateStr]) dailySummary[dateStr] = 0;
+            dailySummary[dateStr] += parseFloat(log.amountPaid);
+        });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                logs: groupedLogs,
+                summary: {
+                    totalAmount,
+                    dailySummary: Object.entries(dailySummary).map(([date, amount]) => ({ date, amount }))
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching collection report:', error);
+        res.status(500).json({ success: false, message: 'Error fetching collection report.' });
     }
 };
