@@ -94,6 +94,16 @@ const feeService = {
     },
 
     /**
+     * Get report of families with pending balances
+     * @param {Object} params - { branchId, currentClass }
+     * @returns {Promise<Object>}
+     */
+    getFamilyPendingFeesReport: async (params) => {
+        const response = await api.get('/fees/report/family-pending', { params });
+        return response.data;
+    },
+
+    /**
      * Delete a fee voucher
      * @param {number} voucherId 
      * @returns {Promise<Object>}

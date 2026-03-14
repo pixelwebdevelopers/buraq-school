@@ -621,6 +621,128 @@ exports.getBulkFees = async (req, res) => {
     }
 };
 
+exports.getFamilyPendingFeesReport = async (req, res) => {
+    try {
+        let { branchId, month, year, minBalance, search } = req.query;
+
+        // Force branch scoping for non-admins
+        if (req.user.role !== 'ADMIN') {
+            branchId = req.user.branchId;
+        }
+
+        const studentWhere = { status: 'ACTIVE' };
+        if (branchId) {
+            studentWhere.branchId = branchId;
+        }
+
+        const feeLogWhere = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
+        if (month) feeLogWhere.month = month;
+        if (year) feeLogWhere.year = year;
+
+        // Find all families that have students meeting the criteria
+        const families = await Family.findAll({
+            where: branchId ? { branchId } : {},
+            include: [
+                {
+                    model: Student,
+                    where: studentWhere,
+                    required: true,
+                    include: [
+                        {
+                            model: FeeLog,
+                            where: feeLogWhere,
+                            required: true
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const report = families.map(family => {
+            const siblings = family.Students.map(student => {
+                const pendingLogs = student.FeeLogs || [];
+                const outstandingBalance = pendingLogs.reduce((acc, log) => {
+                    return acc + (parseFloat(log.amount) - parseFloat(log.paidAmount || 0));
+                }, 0);
+
+                return {
+                    id: student.id,
+                    name: student.name,
+                    admissionNo: student.admissionNo,
+                    currentClass: student.currentClass,
+                    section: student.section,
+                    pendingVouchers: pendingLogs.length,
+                    outstandingBalance
+                };
+            });
+
+            const totalOutstanding = siblings.reduce((acc, sib) => acc + sib.outstandingBalance, 0);
+
+            return {
+                id: family.id,
+                familyId: family.id,
+                fatherName: family.fatherName,
+                fatherPhone: family.fatherPhone,
+                siblings,
+                totalOutstanding
+            };
+        });
+
+        // Filter results
+        let filteredReport = report;
+
+        // Search Filter (Father Name, Sibling Name, Admission No)
+        if (search) {
+            const q = search.toLowerCase();
+            filteredReport = filteredReport.filter(item => 
+                item.fatherName?.toLowerCase().includes(q) ||
+                item.siblings.some(sib => 
+                    sib.name.toLowerCase().includes(q) || 
+                    sib.admissionNo.toLowerCase().includes(q)
+                )
+            );
+        }
+
+        // minBalance Filter
+        if (minBalance) {
+            const min = parseFloat(minBalance);
+            filteredReport = filteredReport.filter(item => item.totalOutstanding >= min);
+        }
+
+        // Calculate Grand Totals
+        const grandTotalBalance = filteredReport.reduce((acc, item) => acc + item.totalOutstanding, 0);
+        const totalFamilies = filteredReport.length;
+
+        // Sort by total balance descending
+        filteredReport.sort((a, b) => b.totalOutstanding - a.totalOutstanding);
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedData = filteredReport.slice(startIndex, endIndex);
+
+        res.status(200).json({
+            success: true,
+            data: paginatedData,
+            summary: {
+                totalBalance: grandTotalBalance,
+                totalFamilies
+            },
+            pagination: {
+                totalCount: totalFamilies,
+                totalPages: Math.ceil(totalFamilies / limit),
+                currentPage: page,
+                limit
+            }
+        });
+    } catch (error) {
+        console.error('Error in getFamilyPendingFeesReport:', error);
+        res.status(500).json({ success: false, message: 'Error generating family pending fees report.' });
+    }
+};
+
 exports.getPendingFeesReport = async (req, res) => {
     try {
         let { branchId, currentClass, month, year, minBalance } = req.query;

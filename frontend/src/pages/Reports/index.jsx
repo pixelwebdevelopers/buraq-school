@@ -11,6 +11,14 @@ const reportCards = [
         category: 'Finance'
     },
     {
+        id: 'family-pending-fees',
+        title: 'Family Pending Fees',
+        description: 'Consolidated report of families with outstanding balances, showing all siblings and total family dues.',
+        icon: <FaUsers className="text-orange-500" />,
+        path: '/dashboard/reports/family-pending-fees',
+        category: 'Finance'
+    },
+    {
         id: 'collection-history',
         title: 'Fee Collection Summary',
         description: 'Analyze daily and monthly collection trends across your institution (Coming Soon).',
