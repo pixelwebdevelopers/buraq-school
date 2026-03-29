@@ -14,12 +14,17 @@ exports.searchFamilies = async (req, res) => {
             });
         }
 
-        const whereClause = {
-            [Op.or]: [
-                { fatherName: { [Op.like]: `%${query}%` } },
-                { fatherPhone: { [Op.like]: `%${query}%` } }
-            ]
-        };
+        const whereClause = { [Op.or]: [] };
+
+        // If the query is a number, search by ID
+        if (!isNaN(parseInt(query))) {
+            whereClause[Op.or].push({ id: parseInt(query) });
+        }
+
+        whereClause[Op.or].push(
+            { fatherName: { [Op.like]: `%${query}%` } },
+            { fatherPhone: { [Op.like]: `%${query}%` } }
+        );
 
         // RBAC: If not ADMIN, force branchId to user's branch
         if (req.user.role !== 'ADMIN') {

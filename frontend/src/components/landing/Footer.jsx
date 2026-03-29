@@ -65,14 +65,16 @@ export default function Footer() {
                         {/* Social */}
                         <div className="mt-6 flex gap-3">
                             {[
-                                { icon: FaFacebookF, href: '#', label: 'Facebook' },
-                                { icon: FaInstagram, href: '#', label: 'Instagram' },
-                                { icon: FaYoutube, href: '#', label: 'YouTube' },
+                                { icon: FaFacebookF, href: 'https://www.facebook.com/share/18jYgBER5M/', label: 'Facebook' },
+                                { icon: FaInstagram, href: 'https://www.instagram.com/buraqschool_official?igsh=MXExdHVvcnAxcXVnbg==', label: 'Instagram' },
+                                { icon: FaYoutube, href: 'https://youtube.com/@buraqschool6166?si=PLomfq_4Olt9Ej0E', label: 'YouTube' },
                                 { icon: FaWhatsapp, href: 'https://wa.me/923108509645', label: 'WhatsApp' },
                             ].map((social) => (
                                 <a
                                     key={social.label}
                                     href={social.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     aria-label={social.label}
                                     className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-sm transition-all hover:bg-secondary hover:scale-110"
                                 >

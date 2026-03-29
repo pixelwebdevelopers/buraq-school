@@ -25,7 +25,7 @@ export default function FamilyTree() {
         e.preventDefault();
         const searchQuery = query.trim();
         if (!searchQuery) {
-            setError('Please enter a phone number or father name to search.');
+            setError('Please enter a phone number, father name, or family ID to search.');
             return;
         }
 
@@ -159,7 +159,7 @@ export default function FamilyTree() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 className="pl-10 w-full py-2.5 px-4 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4B5EAA]/50 focus:border-[#4B5EAA] focus:bg-white outline-none transition-all duration-200"
-                                placeholder="Enter Father Name or Phone Number (e.g. 03001234567)"
+                                placeholder="Enter Father Name, Phone Number, or Family ID"
                             />
                         </div>
                     </div>
@@ -198,6 +198,7 @@ export default function FamilyTree() {
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="text-xs text-gray-500 font-semibold uppercase bg-gray-100/50 border-b border-gray-200">
                                 <tr>
+                                    <th className="px-6 py-4">ID</th>
                                     <th className="px-6 py-4">Father Name</th>
                                     <th className="px-6 py-4">Phone Number</th>
                                     <th className="px-6 py-4">Branch</th>
@@ -209,6 +210,9 @@ export default function FamilyTree() {
                             <tbody className="divide-y divide-gray-100">
                                 {families.map((family) => (
                                     <tr key={family.id} className="hover:bg-blue-50/30 transition-colors">
+                                        <td className="px-6 py-4 font-mono font-bold text-[#4B5EAA]">
+                                            #{family.id}
+                                        </td>
                                         <td className="px-6 py-4 font-bold text-gray-800">
                                             {family.fatherName}
                                         </td>
@@ -285,7 +289,7 @@ export default function FamilyTree() {
                         </div>
                         <h3 className="text-lg font-bold text-gray-800 mb-1">No Families to Display</h3>
                         <p className="text-gray-500 text-sm max-w-sm">
-                            Use the search bar above to find a family using the father's name or phone number.
+                            Use the search bar above to find a family using the father's name, phone number, or family ID.
                         </p>
                     </div>
                 )}

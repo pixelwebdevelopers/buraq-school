@@ -51,16 +51,16 @@ export default function AuthLayout() {
                     {/* Stats Row */}
                     <div className="mt-6 flex gap-5">
                         <div className="glass rounded-xl px-5 py-3 text-center">
-                            <p className="text-xl font-bold text-secondary">12+</p>
-                            <p className="text-[10px] text-white/50">Years</p>
+                            <p className="text-xl font-bold text-white">12+</p>
+                            <p className="text-[10px] text-white">Years</p>
                         </div>
                         <div className="glass rounded-xl px-5 py-3 text-center">
-                            <p className="text-xl font-bold text-secondary">4</p>
-                            <p className="text-[10px] text-white/50">Campuses</p>
+                            <p className="text-xl font-bold text-white">4</p>
+                            <p className="text-[10px] text-white">Campuses</p>
                         </div>
                         <div className="glass rounded-xl px-5 py-3 text-center">
-                            <p className="text-xl font-bold text-secondary">A+</p>
-                            <p className="text-[10px] text-white/50">Results</p>
+                            <p className="text-xl font-bold text-white">A+</p>
+                            <p className="text-[10px] text-white">Results</p>
                         </div>
                     </div>
                 </div>

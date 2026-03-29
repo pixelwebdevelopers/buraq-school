@@ -99,9 +99,35 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-1 mb-2">
                     <div className="flex items-center gap-2 mb-0.5">
                         <img src="/logo.png" alt="Buraq School" className="w-6 h-6 object-contain grayscale" />
-                        <h2 className="text-base font-bold uppercase tracking-wider text-gray-900 leading-tight">Buraq School System</h2>
+                        <h2 className="text-[15px] font-bold uppercase tracking-tight text-gray-900 leading-tight whitespace-nowrap">Buraq School & College</h2>
                     </div>
-                    <p className="text-[8px] uppercase font-semibold text-gray-600 font-mono tracking-widest">Collective Fee Voucher - {copyType}</p>
+                    <p className="text-[8px] uppercase font-semibold text-gray-600 font-mono tracking-widest leading-none">Collective Fee Voucher - {copyType}</p>
+                </div>
+
+                {/* Payment Options Box */}
+                <div className="bg-gray-50 p-1.5 rounded border border-gray-200 mb-2 text-[8px] leading-tight">
+                    {/* (a) Easypaisa */}
+                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1 px-0.5">
+                        <span className="font-bold underline text-[6.5px] uppercase mb-0.5">(a) Easypaisa Account</span>
+                        <div className="flex justify-between items-center font-mono text-gray-900 text-[8px]">
+                            <span>A/c : 0311-5161902</span>
+                            <span>Title : Fazal Hussain</span>
+                        </div>
+                    </div>
+
+                    {/* (b) Bank Account */}
+                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1 px-0.5">
+                        <span className="font-bold underline text-[6.5px] uppercase mb-1">(b) Soneri Bank Ltd</span>
+                        <div className="flex justify-between items-center font-mono text-gray-900 text-[8px]">
+                            <span>A/c : 015920005257329</span>
+                            <span>Title : Buraq School</span>
+                        </div>
+                    </div>
+
+                    {/* (c) Cash in Office */}
+                    <div className="flex justify-between px-0.5">
+                        <span className="font-bold underline text-[6.5px] uppercase">(c) Cash in office</span>
+                    </div>
                 </div>
 
                 {/* Info Grid */}
@@ -187,7 +213,7 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                     {/* TOTAL PAYABLE */}
                     <div className="flex justify-between items-center bg-slate-900 text-white px-2 py-1 rounded shadow-sm text-[9px] font-mono">
                         <span className="font-black uppercase tracking-widest">Total Payable:</span>
-                        <span className="font-black underline decoration-indigo-400 decoration-2">
+                        <span className="font-black">
                             Rs. {(parseFloat(group.previousBalance || 0) + parseFloat(group.totalAmount) - parseFloat(group.totalPaid)).toFixed(2)}
                         </span>
                     </div>

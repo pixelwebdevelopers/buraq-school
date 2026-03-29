@@ -7,7 +7,6 @@ import BranchesCarousel from '@/components/landing/BranchesCarousel';
 import LeadershipSection from '@/components/landing/LeadershipSection';
 import TextMarquee from '@/components/landing/TextMarquee';
 import GallerySection from '@/components/landing/GallerySection';
-import AffiliationSection from '@/components/landing/AffiliationSection';
 import ContactSection from '@/components/landing/ContactSection';
 import Footer from '@/components/landing/Footer';
 import CampusMap from '@/components/landing/CampusMap';
@@ -42,7 +41,6 @@ export default function Landing() {
             <LeadershipSection />
             <TextMarquee />
             <GallerySection />
-            <AffiliationSection />
             <ContactSection />
             <Footer />
         </>

@@ -60,9 +60,35 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-2 mb-3">
                     <div className="flex items-center gap-2 mb-1">
                         <img src="/logo.png" alt="Buraq School" className="w-8 h-8 object-contain grayscale" />
-                        <h2 className="text-lg font-bold uppercase tracking-wider text-gray-900 leading-tight">Buraq School System</h2>
+                        <h2 className="text-[15px] font-bold uppercase tracking-tight text-gray-900 whitespace-nowrap leading-tight">Buraq School & College</h2>
                     </div>
-                    <p className="text-[9px] uppercase font-semibold text-gray-600 tracking-widest font-mono">Fee Voucher - {copyType}</p>
+                    <p className="text-[9px] uppercase font-semibold text-gray-600 tracking-widest font-mono leading-none">Fee Voucher - {copyType}</p>
+                </div>
+
+                {/* Payment Options Box */}
+                <div className="bg-gray-50 p-2 rounded border border-gray-200 mb-3 text-[9px] leading-tight">
+                    {/* (a) Easypaisa */}
+                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
+                        <span className="font-bold underline text-[7.5px] uppercase mb-0.5">(a) Easypaisa Account</span>
+                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
+                            <span>A/c : 0311-5161902</span>
+                            <span>Title : Fazal Hussain</span>
+                        </div>
+                    </div>
+
+                    {/* (b) Bank Account */}
+                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
+                        <span className="font-bold underline text-[7.5px] uppercase mb-1">(b) Soneri Bank Ltd</span>
+                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
+                            <span>A/c : 015920005257329</span>
+                            <span>Title : Buraq School</span>
+                        </div>
+                    </div>
+
+                    {/* (c) Cash in Office */}
+                    <div className="flex justify-between items-center">
+                        <span className="font-bold underline text-[7.5px] uppercase">(c) Cash in office</span>
+                    </div>
                 </div>
 
                 {/* Info Grid */}
@@ -70,7 +96,8 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                     <div className="font-semibold text-gray-700">Voucher No: <span className="font-mono text-gray-900 ml-1">{voucher.id.toString().padStart(5, '0')}</span></div>
                     <div className="font-semibold text-gray-700 text-right">Date: <span className="font-mono text-gray-900 ml-1">{dayjs().format('DD-MMM-YYYY')}</span></div>
                     <div className="font-semibold text-gray-700">Month/Year: <span className="font-mono text-gray-900 ml-1 font-bold">{monthName} {voucher.year}</span></div>
-                    <div className="font-semibold text-gray-700 text-right">Roll No: <span className="font-mono text-gray-900 ml-1 font-bold">{student.referenceNo || 'N/A'}</span></div>
+                    <div className="font-semibold text-gray-700 text-right">Family ID: <span className="font-mono text-gray-900 ml-1 font-bold">{(student.Family?.id || student.familyId || '').toString().padStart(4, '0')}</span></div>
+                    <div className="font-semibold text-gray-700 col-span-2">Phone No: <span className="font-mono text-gray-900 ml-1 font-bold">{student.Family?.fatherPhone || 'N/A'}</span></div>
                 </div>
 
                 {/* Student Detail */}
@@ -144,7 +171,7 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                     {/* TOTAL PAYABLE */}
                     <div className="flex justify-between bg-slate-900 text-white px-2 py-1.5 rounded mt-1 shadow-sm">
                         <span className="font-black uppercase tracking-widest text-[10px]">Total Payable:</span>
-                        <span className="font-black underline decoration-indigo-400">
+                        <span className="font-black">
                             Rs. {(parseFloat(voucher.previousBalance || 0) + totalAmount - paidAmount).toFixed(2)}
                         </span>
                     </div>

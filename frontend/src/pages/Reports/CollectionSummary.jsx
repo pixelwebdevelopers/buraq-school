@@ -241,7 +241,8 @@ export default function CollectionSummaryReport() {
                                 <tr>
                                     <th className="px-6 py-4">Date & Time</th>
                                     <th className="px-6 py-4">Family/Student</th>
-                                    <th className="px-6 py-4">Received By</th>
+                                    <th className="px-6 py-4 text-center">Phone Number</th>
+                                    <th className="px-6 py-4 text-center border-l-2 border-white">Received By</th>
                                     <th className="px-6 py-4 text-right">Amount</th>
                                 </tr>
                             </thead>
@@ -264,7 +265,12 @@ export default function CollectionSummaryReport() {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="text-xs font-mono font-bold text-[#4B5EAA] bg-[#4B5EAA]/5 px-2 py-1 rounded">
+                                                {log.Family?.fatherPhone}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-center border-l-2 border-gray-50">
                                             <span className="text-xs text-gray-600">{log.receivedBy?.name}</span>
                                         </td>
                                         <td className="px-6 py-4 text-right font-black text-green-600">
@@ -297,6 +303,7 @@ export default function CollectionSummaryReport() {
                             <tr className="border-b border-black text-left text-[10px] uppercase">
                                 <th className="py-2">Date</th>
                                 <th className="py-2">Parent Name</th>
+                                <th className="py-2">Phone Number</th>
                                 <th className="py-2">Student Name</th>
                                 <th className="py-2 text-right">Amount Paid</th>
                             </tr>
@@ -306,6 +313,7 @@ export default function CollectionSummaryReport() {
                                 <tr key={log.id} className="border-b border-gray-200">
                                     <td className="py-2">{dayjs(log.createdAt).format('DD/MM/YYYY')}</td>
                                     <td className="py-2 uppercase">{log.Family?.fatherName}</td>
+                                    <td className="py-2 text-blue-800 font-mono">{log.Family?.fatherPhone}</td>
                                     <td className="py-2 uppercase">{log.studentNames?.join(', ')}</td>
                                     <td className="py-2 text-right font-bold">Rs. {parseFloat(log.amountPaid).toLocaleString()}</td>
                                 </tr>

@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import useScrollReveal from '@/hooks/useScrollReveal';
 import resultsImage from '@/assets/images/results.jpeg';
+import result1Image from '@/assets/images/Result1.jpeg';
 
 export default function PerformanceSection() {
     const sectionRef = useScrollReveal();
+    const [lightbox, setLightbox] = useState(null);
 
     return (
         <section id="performance" className="relative overflow-hidden bg-primary py-20 lg:py-28">
@@ -37,32 +40,32 @@ export default function PerformanceSection() {
 
                 {/* Results Content */}
                 <div className="mt-14 grid items-center gap-10 lg:grid-cols-2">
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                        <div className="glass rounded-2xl p-6 text-center text-white">
-                            <p className="text-4xl font-extrabold text-secondary sm:text-5xl">1028</p>
-                            <p className="mt-2 text-sm text-white/60">Highest Marks</p>
-                            <p className="mt-1 text-xs font-semibold text-secondary-light">Aiman Saleem</p>
-                        </div>
-                        <div className="glass rounded-2xl p-6 text-center text-white">
-                            <p className="text-4xl font-extrabold text-accent-light sm:text-5xl">1010</p>
-                            <p className="mt-2 text-sm text-white/60">2nd Position</p>
-                            <p className="mt-1 text-xs font-semibold text-accent-light">Noor-e-Haram</p>
-                        </div>
-                        <div className="glass rounded-2xl p-6 text-center text-white">
-                            <p className="text-4xl font-extrabold text-white sm:text-5xl">50+</p>
-                            <p className="mt-2 text-sm text-white/60">A+ Students</p>
-                            <p className="mt-1 text-xs font-medium text-white/40">Class 9th & 10th</p>
-                        </div>
-                        <div className="glass rounded-2xl p-6 text-center text-white">
-                            <p className="text-4xl font-extrabold text-secondary sm:text-5xl">100%</p>
-                            <p className="mt-2 text-sm text-white/60">Pass Rate</p>
-                            <p className="mt-1 text-xs font-medium text-white/40">All Campuses</p>
+                    {/* Results Table Image */}
+                    <div
+                        className="group relative cursor-pointer overflow-hidden rounded-3xl shadow-2xl"
+                        onClick={() => setLightbox({ src: result1Image, alt: 'Buraq School Board Results Table' })}
+                    >
+                        <div className="absolute inset-0 rounded-3xl border-2 border-white/10 z-10" />
+                        <img
+                            src={result1Image}
+                            alt="Buraq School Board Results Table"
+                            className="w-full max-h-[80vh] lg:max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
+                        />
+                         <div className="absolute bottom-0 inset-x-0 glass-dark p-4 z-20">
+                            <p className="text-sm font-bold text-white">
+                                Detailed Board Performance
+                            </p>
+                            <p className="text-xs text-white/60">
+                                Subject-wise Highest Marks & A+ Achievers
+                            </p>
                         </div>
                     </div>
 
                     {/* Results Image */}
-                    <div className="group relative overflow-hidden rounded-3xl shadow-2xl">
+                    <div
+                        className="group relative cursor-pointer overflow-hidden rounded-3xl shadow-2xl"
+                        onClick={() => setLightbox({ src: resultsImage, alt: 'Buraq School SSC Results 2025 — Federal Board Toppers' })}
+                    >
                         <div className="absolute inset-0 rounded-3xl border-2 border-white/10 z-10" />
                         <img
                             src={resultsImage}
@@ -80,6 +83,28 @@ export default function PerformanceSection() {
                     </div>
                 </div>
             </div>
+
+            {/* Lightbox Modal */}
+            {lightbox && (
+                <div
+                    className="fixed inset-0 z-[999] flex items-center justify-center bg-black/95 p-4 animate-fade-in"
+                    onClick={() => setLightbox(null)}
+                >
+                    <button
+                        onClick={() => setLightbox(null)}
+                        className="absolute top-6 right-6 text-3xl text-white/80 hover:text-white transition-colors"
+                        aria-label="Close"
+                    >
+                        ✕
+                    </button>
+                    <img
+                        src={lightbox.src}
+                        alt={lightbox.alt}
+                        className="max-h-[90vh] max-w-[95vw] rounded-lg object-contain shadow-2xl animate-scale-in"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
         </section>
     );
 }

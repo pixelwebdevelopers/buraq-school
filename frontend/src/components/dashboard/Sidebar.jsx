@@ -21,7 +21,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { name: 'Branches', path: '/dashboard/branches', icon: <FaMapMarkerAlt />, roles: ['ADMIN'] },
         { name: 'Family Tree', path: '/dashboard/family-tree', icon: <FaGlobe />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
         { name: 'Fees', path: '/dashboard/fees', icon: <FaMoneyBillWave />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
-        { name: 'Reports', path: '/dashboard/reports', icon: <FaChartBar />, roles: ['ADMIN', 'PRINCIPAL'] },
+        { name: 'Reports', path: '/dashboard/reports', icon: <FaChartBar />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
         { name: 'Users', path: '/dashboard/users', icon: <FaGlobe />, roles: ['ADMIN', 'PRINCIPAL'] }, // Reusing an icon for simple users view
         { name: 'Settings', path: '/dashboard/settings', icon: <FaCog />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
     ];

@@ -28,21 +28,27 @@ export default function HeaderTop() {
                 {/* Social Icons */}
                 <div className="flex items-center gap-3">
                     <a
-                        href="#"
+                        href="https://www.facebook.com/share/18jYgBER5M/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         aria-label="Facebook"
                         className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 transition-all hover:bg-secondary hover:scale-110"
                     >
                         <FaFacebookF className="text-xs" />
                     </a>
                     <a
-                        href="#"
+                        href="https://www.instagram.com/buraqschool_official?igsh=MXExdHVvcnAxcXVnbg=="
+                        target="_blank"
+                        rel="noopener noreferrer"
                         aria-label="Instagram"
                         className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 transition-all hover:bg-secondary hover:scale-110"
                     >
                         <FaInstagram className="text-xs" />
                     </a>
                     <a
-                        href="#"
+                        href="https://youtube.com/@buraqschool6166?si=PLomfq_4Olt9Ej0E"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         aria-label="YouTube"
                         className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 transition-all hover:bg-secondary hover:scale-110"
                     >
