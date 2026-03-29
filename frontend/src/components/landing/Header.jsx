@@ -55,11 +55,11 @@ export default function Header() {
                 {/* Logo */}
                 <a href="#home" className="flex items-center gap-3">
                     <img src={logo} alt="Buraq School" className="h-12 w-auto sm:h-14" />
-                    <div className="hidden sm:block">
-                        <h1 className="text-lg font-bold leading-tight text-primary">
+                    <div className="flex flex-col">
+                        <h1 className="text-sm sm:text-lg font-bold leading-tight text-primary">
                             Buraq School <span className="text-secondary">&</span> College
                         </h1>
-                        <p className="text-[10px] font-medium tracking-wider text-text-secondary uppercase">
+                        <p className="text-[8px] sm:text-[10px] font-medium tracking-wider text-text-secondary uppercase">
                             Affiliated with Federal Board
                         </p>
                     </div>
