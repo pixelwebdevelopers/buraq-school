@@ -105,7 +105,7 @@ export default function Franchise() {
                             </div>
                         </div>
                         <div className="relative">
-                            <div className="relative z-10 overflow-hidden rounded-[2.5rem] shadow-2xl">
+                            <div className="relative z-10 overflow-hidden rounded-[2.5rem] shadow-2xl bg-primary">
                                 <img src="/src/assets/images/hero_img.png" alt="Education" className="w-full object-cover" />
                             </div>
                             <div className="absolute -bottom-6 -right-6 -z-0 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />

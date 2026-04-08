@@ -150,7 +150,7 @@ export default function HeroSlider() {
             <img
                 src={studentsImage}
                 alt="Buraq School Students"
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 lg:left-auto lg:translate-x-0 lg:right-[8%] xl:right-[12%] h-[50vh] sm:h-[55vh] lg:h-[85vh] w-auto object-contain drop-shadow-2xl pointer-events-none"
+                className="absolute -bottom-3 left-1/2 -translate-x-1/2 lg:left-auto lg:translate-x-0 lg:right-[5%] xl:right-[6%] h-[35vh] sm:h-[65vh] lg:h-[90vh] w-auto object-contain drop-shadow-2xl pointer-events-none"
             />
 
             {/* Dots */}
