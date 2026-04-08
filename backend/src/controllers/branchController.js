@@ -1,4 +1,4 @@
-const { Branch, User, Student, sequelize } = require('../models');
+const { Branch, User, Student, BranchAccount, sequelize } = require('../models');
 const bcrypt = require('bcryptjs');
 
 const branchController = {
@@ -11,6 +11,10 @@ const branchController = {
                         model: User,
                         as: 'principal',
                         attributes: ['id', 'name', 'email', 'username', 'phone']
+                    },
+                    {
+                        model: BranchAccount,
+                        as: 'accounts'
                     }
                 ],
                 order: [['createdAt', 'DESC']]
@@ -39,6 +43,10 @@ const branchController = {
                         model: User,
                         as: 'principal',
                         attributes: ['id', 'name', 'email', 'username', 'phone']
+                    },
+                    {
+                        model: BranchAccount,
+                        as: 'accounts'
                     }
                 ]
             });
@@ -64,7 +72,7 @@ const branchController = {
     createBranch: async (req, res, next) => {
         const t = await sequelize.transaction();
         try {
-            const { name, address, principalName, principalEmail, principalUsername, principalPassword, principalPhone } = req.body;
+            const { name, address, principalName, principalEmail, principalUsername, principalPassword, principalPhone, accounts } = req.body;
 
             if (!name || !address || !principalName || !principalEmail || !principalUsername || !principalPassword) {
                 const err = new Error('Please provide all required fields');
@@ -106,6 +114,16 @@ const branchController = {
                 principalId: principalUser.id
             }, { transaction: t });
 
+            // Create Accounts if any
+            if (accounts && Array.isArray(accounts)) {
+                await Promise.all(accounts.map(acc => {
+                    return BranchAccount.create({
+                        ...acc,
+                        branchId: branch.id
+                    }, { transaction: t });
+                }));
+            }
+
             // Update principal user to link with the created branch (branchId)
             await principalUser.update({ branchId: branch.id }, { transaction: t });
 
@@ -126,7 +144,7 @@ const branchController = {
     updateBranch: async (req, res, next) => {
         const t = await sequelize.transaction();
         try {
-            const { name, address, principalName, principalEmail, principalUsername, principalPassword, principalPhone } = req.body;
+            const { name, address, principalName, principalEmail, principalUsername, principalPassword, principalPhone, accounts } = req.body;
 
             const branch = await Branch.findByPk(req.params.id, { transaction: t });
 
@@ -140,6 +158,25 @@ const branchController = {
             if (name) branch.name = name;
             if (address) branch.address = address;
             await branch.save({ transaction: t });
+
+            // Update Accounts
+            if (accounts && Array.isArray(accounts)) {
+                // Delete existing accounts
+                await BranchAccount.destroy({
+                    where: { branchId: branch.id },
+                    transaction: t
+                });
+
+                // Create new accounts
+                await Promise.all(accounts.map(acc => {
+                    return BranchAccount.create({
+                        name: acc.name,
+                        accountTitle: acc.accountTitle,
+                        accountNumber: acc.accountNumber,
+                        branchId: branch.id
+                    }, { transaction: t });
+                }));
+            }
 
             // Update Principal Details
             if (branch.principalId) {

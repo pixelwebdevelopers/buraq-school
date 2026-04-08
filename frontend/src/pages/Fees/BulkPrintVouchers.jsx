@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
+import branchService from '@/services/branchService';
 
 const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-export const VoucherSlip = ({ voucher, student, copyType }) => {
+export const VoucherSlip = ({ voucher, student, copyType, accounts = [] }) => {
     const monthName = monthNames[voucher.month - 1];
     const totalAmount = parseFloat(voucher.amount);
     const paidAmount = parseFloat(voucher.paidAmount || 0);
@@ -21,27 +22,20 @@ export const VoucherSlip = ({ voucher, student, copyType }) => {
 
                 {/* Payment Options Box */}
                 <div className="bg-gray-50 p-2 rounded border border-gray-200 mb-3 text-[9px] leading-tight">
-                    {/* (a) Easypaisa */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
-                        <span className="font-bold underline text-[7.5px] uppercase mb-0.5">(a) Easypaisa Account</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
-                            <span>A/c : 0311-5161902</span>
-                            <span>Title : Fazal Hussain</span>
+                    {/* Dynamic Accounts */}
+                    {accounts.map((acc, idx) => (
+                        <div key={idx} className="flex flex-col border-b border-gray-100 pb-1 mb-1 last:mb-0 last:border-0 pt-0.5 first:pt-0">
+                            <span className="font-bold underline text-[7.5px] uppercase mb-0.5">({String.fromCharCode(97 + idx)}) {acc.name}</span>
+                            <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
+                                <span>A/c : {acc.accountNumber}</span>
+                                <span>Title : {acc.accountTitle}</span>
+                            </div>
                         </div>
-                    </div>
+                    ))}
 
-                    {/* (b) Bank Account */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
-                        <span className="font-bold underline text-[7.5px] uppercase mb-1">(b) Soneri Bank Ltd</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
-                            <span>A/c : 015920005257329</span>
-                            <span>Title : Buraq School</span>
-                        </div>
-                    </div>
-
-                    {/* (c) Cash in Office */}
-                    <div className="flex justify-between items-center">
-                        <span className="font-bold underline text-[7.5px] uppercase">(c) Cash in office</span>
+                    {/* Hardcoded Cash in Office */}
+                    <div className={`flex justify-between items-center ${accounts.length > 0 ? 'border-t border-gray-100 pt-1 mt-1' : ''}`}>
+                        <span className="font-bold underline text-[7.5px] uppercase">({String.fromCharCode(97 + accounts.length)}) Cash in office</span>
                     </div>
                 </div>
 
@@ -137,6 +131,33 @@ export const VoucherSlip = ({ voucher, student, copyType }) => {
 };
 
 const BulkPrintVouchers = React.forwardRef(({ vouchers }, ref) => {
+    const [branchAccountsMap, setBranchAccountsMap] = useState({});
+
+    useEffect(() => {
+        const fetchAllBranchAccounts = async () => {
+            if (!vouchers || vouchers.length === 0) return;
+
+            // Get unique branch IDs from students
+            const branchIds = [...new Set(vouchers.map(v => v.Student?.branchId))];
+            const map = {};
+
+            try {
+                await Promise.all(branchIds.map(async (id) => {
+                    if (!id) return;
+                    const data = await branchService.getBranchById(id);
+                    if (data && data.accounts) {
+                        map[id] = data.accounts;
+                    }
+                }));
+                setBranchAccountsMap(map);
+            } catch (err) {
+                console.error("Error fetching branch accounts for bulk student print:", err);
+            }
+        };
+
+        fetchAllBranchAccounts();
+    }, [vouchers]);
+
     // Group vouchers into chunks of 3
     const chunks = vouchers.reduce((acc, curr, i) => {
         const chunkIndex = Math.floor(i / 3);
@@ -165,6 +186,7 @@ const BulkPrintVouchers = React.forwardRef(({ vouchers }, ref) => {
                             voucher={voucher}
                             student={voucher.Student}
                             copyType="Student Copy"
+                            accounts={branchAccountsMap[voucher.Student?.branchId] || []}
                         />
                     ))}
                 </div>

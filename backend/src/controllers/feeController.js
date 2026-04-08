@@ -640,11 +640,11 @@ exports.getBulkFees = async (req, res) => {
                 {
                     model: Student,
                     where: studentWhere,
-                    attributes: ['id', 'name', 'currentClass', 'section', 'admissionNo', 'referenceNo']
+                    attributes: ['id', 'name', 'currentClass', 'section', 'admissionNo', 'referenceNo', 'branchId']
                 },
                 {
                     model: Family,
-                    attributes: ['id', 'fatherName', 'fatherPhone']
+                    attributes: ['id', 'fatherName', 'fatherPhone', 'branchId']
                 }
             ],
             limit,
@@ -927,7 +927,7 @@ exports.getBulkFamilyFees = async (req, res) => {
         // 1. Get all students matches the filter (e.g. Class 5 students)
         const targetStudents = await Student.findAll({
             where: studentWhere,
-            include: [{ model: Family, attributes: ['id', 'fatherName', 'fatherPhone'] }]
+            include: [{ model: Family, attributes: ['id', 'fatherName', 'fatherPhone', 'branchId'] }]
         });
 
         if (targetStudents.length === 0) {

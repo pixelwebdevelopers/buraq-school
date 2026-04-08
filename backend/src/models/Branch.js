@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
         Branch.hasMany(models.User, { as: 'staff', foreignKey: 'branchId' });
         Branch.hasMany(models.Student, { foreignKey: 'branchId' });
         Branch.hasMany(models.Family, { foreignKey: 'branchId' });
+        Branch.hasMany(models.BranchAccount, { as: 'accounts', foreignKey: 'branchId' });
     };
 
     return Branch;

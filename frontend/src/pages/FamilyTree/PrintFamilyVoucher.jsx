@@ -3,30 +3,41 @@ import { useReactToPrint } from 'react-to-print';
 import { FaPrint, FaTimes, FaSpinner } from 'react-icons/fa';
 import dayjs from 'dayjs';
 import familyService from '@/services/familyService';
+import branchService from '@/services/branchService';
 
 export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     const componentRef = useRef();
     const [allStudents, setAllStudents] = useState([]);
+    const [branchAccounts, setBranchAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchStudents = async () => {
+        const fetchData = async () => {
             if (!family?.id) return;
             try {
-                const res = await familyService.getFamilyStudents(family.id);
-                if (res.success) {
-                    // Only active students
-                    setAllStudents(res.data.filter(s => s.status === 'ACTIVE'));
+                setLoading(true);
+                // Fetch siblings
+                const studentsRes = await familyService.getFamilyStudents(family.id);
+                if (studentsRes.success) {
+                    setAllStudents(studentsRes.data.filter(s => s.status === 'ACTIVE'));
+                }
+
+                // Fetch branch accounts
+                if (family.branchId) {
+                    const branchData = await branchService.getBranchById(family.branchId);
+                    if (branchData && branchData.accounts) {
+                        setBranchAccounts(branchData.accounts);
+                    }
                 }
             } catch (err) {
-                console.error("Error fetching siblings for print:", err);
+                console.error("Error fetching data for print:", err);
             } finally {
                 setLoading(false);
             }
         };
 
         if (isOpen && family) {
-            fetchStudents();
+            fetchData();
         }
     }, [isOpen, family]);
 
@@ -107,27 +118,20 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
 
                 {/* Payment Options Box */}
                 <div className="bg-gray-50 p-1.5 rounded border border-gray-200 mb-2 text-[8px] leading-tight">
-                    {/* (a) Easypaisa */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1 px-0.5">
-                        <span className="font-bold underline text-[6.5px] uppercase mb-0.5">(a) Easypaisa Account</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[8px]">
-                            <span>A/c : 0311-5161902</span>
-                            <span>Title : Fazal Hussain</span>
+                    {/* Dynamic Accounts */}
+                    {branchAccounts.map((acc, idx) => (
+                        <div key={idx} className="flex flex-col border-b border-gray-100 pb-1 mb-1 px-0.5 last:mb-0 last:border-0">
+                            <span className="font-bold underline text-[6.5px] uppercase mb-0.5">({String.fromCharCode(97 + idx)}) {acc.name}</span>
+                            <div className="flex justify-between items-center font-mono text-gray-900 text-[8px]">
+                                <span>A/c : {acc.accountNumber}</span>
+                                <span>Title : {acc.accountTitle}</span>
+                            </div>
                         </div>
-                    </div>
+                    ))}
 
-                    {/* (b) Bank Account */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1 px-0.5">
-                        <span className="font-bold underline text-[6.5px] uppercase mb-1">(b) Soneri Bank Ltd</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[8px]">
-                            <span>A/c : 015920005257329</span>
-                            <span>Title : Buraq School</span>
-                        </div>
-                    </div>
-
-                    {/* (c) Cash in Office */}
-                    <div className="flex justify-between px-0.5">
-                        <span className="font-bold underline text-[6.5px] uppercase">(c) Cash in office</span>
+                    {/* Hardcoded Cash in Office */}
+                    <div className={`flex justify-between px-0.5 ${branchAccounts.length > 0 ? 'border-t border-gray-100 pt-1 mt-1' : ''}`}>
+                        <span className="font-bold underline text-[6.5px] uppercase">({String.fromCharCode(97 + branchAccounts.length)}) Cash in office</span>
                     </div>
                 </div>
 

@@ -1,10 +1,31 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { FaPrint, FaTimes } from 'react-icons/fa';
 import dayjs from 'dayjs';
+import branchService from '@/services/branchService';
 
 export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
     const componentRef = useRef();
+    const [branchAccounts, setBranchAccounts] = useState([]);
+
+    useEffect(() => {
+        const fetchBranchAccounts = async () => {
+            if (student?.branchId) {
+                try {
+                    const branchData = await branchService.getBranchById(student.branchId);
+                    if (branchData && branchData.accounts) {
+                        setBranchAccounts(branchData.accounts);
+                    }
+                } catch (err) {
+                    console.error("Error fetching branch accounts:", err);
+                }
+            }
+        };
+
+        if (isOpen && student) {
+            fetchBranchAccounts();
+        }
+    }, [isOpen, student]);
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
@@ -68,27 +89,20 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
 
                 {/* Payment Options Box */}
                 <div className="bg-gray-50 p-2 rounded border border-gray-200 mb-3 text-[9px] leading-tight">
-                    {/* (a) Easypaisa */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
-                        <span className="font-bold underline text-[7.5px] uppercase mb-0.5">(a) Easypaisa Account</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
-                            <span>A/c : 0311-5161902</span>
-                            <span>Title : Fazal Hussain</span>
+                    {/* Dynamic Accounts */}
+                    {branchAccounts.map((acc, idx) => (
+                        <div key={idx} className="flex flex-col border-b border-gray-100 pb-1 mb-1 last:mb-0 last:border-0 pt-0.5 first:pt-0">
+                            <span className="font-bold underline text-[7.5px] uppercase mb-0.5">({String.fromCharCode(97 + idx)}) {acc.name}</span>
+                            <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
+                                <span>A/c : {acc.accountNumber}</span>
+                                <span>Title : {acc.accountTitle}</span>
+                            </div>
                         </div>
-                    </div>
+                    ))}
 
-                    {/* (b) Bank Account */}
-                    <div className="flex flex-col border-b border-gray-100 pb-1 mb-1">
-                        <span className="font-bold underline text-[7.5px] uppercase mb-1">(b) Soneri Bank Ltd</span>
-                        <div className="flex justify-between items-center font-mono text-gray-900 text-[9px]">
-                            <span>A/c : 015920005257329</span>
-                            <span>Title : Buraq School</span>
-                        </div>
-                    </div>
-
-                    {/* (c) Cash in Office */}
-                    <div className="flex justify-between items-center">
-                        <span className="font-bold underline text-[7.5px] uppercase">(c) Cash in office</span>
+                    {/* Hardcoded Cash in Office */}
+                    <div className={`flex justify-between items-center ${branchAccounts.length > 0 ? 'border-t border-gray-100 pt-1 mt-1' : ''}`}>
+                        <span className="font-bold underline text-[7.5px] uppercase">({String.fromCharCode(97 + branchAccounts.length)}) Cash in office</span>
                     </div>
                 </div>
 
