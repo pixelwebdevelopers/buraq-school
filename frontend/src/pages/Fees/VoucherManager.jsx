@@ -91,7 +91,7 @@ export default function VoucherManager({ filters }) {
 
     const triggerFamilyPrint = async () => {
         if (!filters.branchId || !filters.currentClass) return;
-        
+
         setFetchingFamily(true);
         try {
             const result = await feeService.getBulkFamilyFees(filters);
@@ -118,8 +118,8 @@ export default function VoucherManager({ filters }) {
         <div className="p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                 <div>
-                    <h3 className="text-lg font-bold text-gray-800">Voucher Management</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">Generate and print vouchers in bulk for the selected period.</p>
+                    <h3 className="text-sm font-bold text-gray-800">Additional Charges</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">You can use this field <br></br> to add some extra <br></br> charges for the students.</p>
                 </div>
                 <div className="flex flex-wrap gap-3 w-full sm:w-auto items-center bg-gray-50 p-2 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-2 group">
