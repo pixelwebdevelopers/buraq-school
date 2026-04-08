@@ -56,10 +56,10 @@ export default function Header() {
                 <a href="#home" className="flex items-center gap-3">
                     <img src={logo} alt="Buraq School" className="h-12 w-auto sm:h-14" />
                     <div className="flex flex-col">
-                        <h1 className="text-sm sm:text-lg font-bold leading-tight text-primary">
+                        <h1 className="text-base sm:text-xl font-bold leading-tight text-primary">
                             Buraq School <span className="text-secondary">&</span> College
                         </h1>
-                        <p className="text-[8px] sm:text-[10px] font-medium tracking-wider text-text-secondary uppercase">
+                        <p className="text-[10px] sm:text-xs font-medium tracking-wider text-text-secondary uppercase">
                             Affiliated with Federal Board
                         </p>
                     </div>
@@ -73,7 +73,7 @@ export default function Header() {
                                 key={link.label}
                                 to={link.href}
                                 onClick={() => setMobileOpen(false)}
-                                className="relative px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:text-primary group"
+                                className="relative px-4 py-2 text-base font-bold text-text-primary transition-colors hover:text-primary group"
                             >
                                 {link.label}
                                 <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
@@ -83,7 +83,7 @@ export default function Header() {
                                 key={link.label}
                                 href={link.href}
                                 onClick={(e) => handleNavClick(e, link.href)}
-                                className="relative px-4 py-2 text-sm font-semibold text-text-primary transition-colors hover:text-primary group"
+                                className="relative px-4 py-2 text-base font-bold text-text-primary transition-colors hover:text-primary group"
                             >
                                 {link.label}
                                 <span className="absolute bottom-0 left-1/2 h-0.5 w-0 -translate-x-1/2 bg-secondary transition-all duration-300 group-hover:w-3/4 rounded-full" />
@@ -93,14 +93,14 @@ export default function Header() {
                     {user ? (
                         <Link
                             to="/dashboard"
-                            className="ml-4 rounded-lg bg-secondary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                            className="ml-4 rounded-lg bg-secondary px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Dashboard
                         </Link>
                     ) : (
                         <Link
                             to="/login"
-                            className="ml-4 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-primary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+                            className="ml-4 rounded-lg bg-primary px-6 py-2.5 text-base font-semibold text-white shadow-md transition-all hover:bg-primary-light hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
                         >
                             Login
                         </Link>
