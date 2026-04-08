@@ -152,23 +152,46 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                         <tbody>
                             {allStudents.map(student => {
                                 const voucher = studentVoucherMap[student.id];
+                                if (!voucher) return null;
                                 return (
-                                    <tr key={student.id} className="border-b border-gray-200">
-                                        <td className="px-1 py-0.5 border-r font-medium uppercase truncate" style={{ maxWidth: '80px' }}>
-                                            {student.name}
-                                            {voucher?.extraChargeAmount > 0 && (
-                                                <div className="text-[6px] normal-case text-orange-600 font-bold leading-none mt-0.5">
-                                                    + {voucher.extraChargeName}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-1 py-0.5 border-r text-center font-mono">
-                                            {student.currentClass}
-                                        </td>
-                                        <td className="px-1 py-0.5 text-right font-mono font-bold">
-                                            {voucher ? parseFloat(voucher.amount).toFixed(2) : '0.00'}
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={student.id}>
+                                        <tr className="border-b border-gray-300 bg-gray-50/50">
+                                            <td className="px-1 py-0.5 border-r font-bold uppercase truncate" style={{ maxWidth: '100px' }}>
+                                                {student.name}
+                                            </td>
+                                            <td className="px-1 py-0.5 border-r text-center font-mono text-[8px]">
+                                                {student.currentClass}
+                                            </td>
+                                            <td className="px-1 py-0.5 text-right font-mono font-bold bg-gray-100/50">
+                                                {parseFloat(voucher.amount).toFixed(2)}
+                                            </td>
+                                        </tr>
+                                        {/* Breakdown items */}
+                                        {parseFloat(voucher.monthlyFee) > 0 && (
+                                            <tr className="border-b border-gray-100 text-[7.5px] text-gray-600">
+                                                <td className="px-2 py-0 border-r italic" colSpan="2">Monthly Fee</td>
+                                                <td className="px-1 py-0 text-right font-mono">{parseFloat(voucher.monthlyFee).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.academyFee) > 0 && (
+                                            <tr className="border-b border-gray-100 text-[7.5px] text-gray-600">
+                                                <td className="px-2 py-0 border-r italic" colSpan="2">Academy Fee</td>
+                                                <td className="px-1 py-0 text-right font-mono">{parseFloat(voucher.academyFee).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.labMiscFee) > 0 && (
+                                            <tr className="border-b border-gray-100 text-[7.5px] text-gray-600">
+                                                <td className="px-2 py-0 border-r italic" colSpan="2">Lab/Misc Fee</td>
+                                                <td className="px-1 py-0 text-right font-mono">{parseFloat(voucher.labMiscFee).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.extraChargeAmount) > 0 && (
+                                            <tr className="border-b border-gray-100 text-[7.5px] text-gray-600">
+                                                <td className="px-2 py-0 border-r italic" colSpan="2">{voucher.extraChargeName || 'Extra Charge'}</td>
+                                                <td className="px-1 py-0 text-right font-mono">{parseFloat(voucher.extraChargeAmount).toFixed(2)}</td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
                                 );
                             })}
                         </tbody>
