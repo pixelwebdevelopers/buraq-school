@@ -55,8 +55,9 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                     overflow: hidden !important;
                     background: white !important;
                 }
-                .slip {
-                    flex: 1;
+                 .slip {
+                    width: 92mm !important;
+                    flex: none !important;
                     height: 100%;
                     border: 1px solid #000 !important;
                     padding: 5mm !important;
@@ -84,7 +85,7 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthName = monthNames[group.month - 1];
 
-    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
+    const copyTypes = ['Student Copy'];
 
     // Cross-reference all students with vouchers in the group
     const studentVoucherMap = {};
@@ -93,7 +94,7 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     });
 
     const renderSlip = (copyType, index) => (
-        <div key={index} className="slip flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '9px' }}>
+        <div key={index} className="slip border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ width: '92mm', minHeight: '100%', fontSize: '9px' }}>
             <div className="overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-1 mb-2">

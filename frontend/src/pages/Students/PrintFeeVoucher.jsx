@@ -30,8 +30,9 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                     gap: 10mm !important;
                     background: white !important;
                 }
-                .slip {
-                    flex: 1;
+                 .slip {
+                    width: 92mm !important;
+                    flex: none !important;
                     height: 100%;
                     border: 1px solid #000 !important;
                     padding: 8mm !important;
@@ -51,10 +52,10 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
     const paidAmount = parseFloat(voucher.paidAmount || 0);
 
     // We will render three identical slips: School Copy, Student Copy, Bank Copy
-    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
+    const copyTypes = ['Student Copy'];
 
     const renderSlip = (copyType, index) => (
-        <div key={index} className="slip flex-1 border border-gray-400 p-4 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '11px' }}>
+        <div key={index} className="slip border border-gray-400 p-4 rounded-lg bg-white relative flex flex-col justify-between" style={{ width: '92mm', minHeight: '100%', fontSize: '11px' }}>
             <div>
                 {/* Header */}
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-2 mb-3">

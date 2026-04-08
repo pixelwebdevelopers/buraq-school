@@ -13,7 +13,7 @@ const FamilyVoucherSlip = ({ family, students, group, copyType }) => {
     });
 
     return (
-        <div className="slip flex-1 border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '9px' }}>
+        <div className="slip border border-gray-400 p-3 rounded-lg bg-white relative flex flex-col justify-between" style={{ width: '92mm', minHeight: '100%', fontSize: '9px' }}>
             <div className="overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-1 mb-2">
@@ -173,11 +173,17 @@ const FamilyVoucherSlip = ({ family, students, group, copyType }) => {
 };
 
 const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
-    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
+    // Group families into chunks of 3
+    const chunks = familyGroups.reduce((acc, curr, i) => {
+        const chunkIndex = Math.floor(i / 3);
+        if (!acc[chunkIndex]) acc[chunkIndex] = [];
+        acc[chunkIndex].push(curr);
+        return acc;
+    }, []);
 
     return (
         <div ref={ref} className="bulk-print-container">
-            {familyGroups.map((item, index) => (
+            {chunks.map((chunk, index) => (
                 <div key={index} className="print-page" style={{
                     height: '210mm',
                     width: '297mm',
@@ -189,13 +195,13 @@ const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
                     gap: '5mm',
                     backgroundColor: 'white'
                 }}>
-                    {copyTypes.map((type, i) => (
+                    {chunk.map((item, i) => (
                         <FamilyVoucherSlip
-                            key={`${index}-${i}`}
+                            key={i}
                             family={item.family}
                             students={item.students}
                             group={item.group}
-                            copyType={type}
+                            copyType="Student Copy"
                         />
                     ))}
                 </div>

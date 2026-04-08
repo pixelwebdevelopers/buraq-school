@@ -9,7 +9,7 @@ export const VoucherSlip = ({ voucher, student, copyType }) => {
     const paidAmount = parseFloat(voucher.paidAmount || 0);
 
     return (
-        <div className="slip flex-1 border border-gray-400 p-4 rounded-lg bg-white relative flex flex-col justify-between" style={{ minHeight: '100%', fontSize: '11px' }}>
+        <div className="slip border border-gray-400 p-4 rounded-lg bg-white relative flex flex-col justify-between" style={{ width: '92mm', minHeight: '100%', fontSize: '11px' }}>
             <div>
                 <div className="flex flex-col items-center border-b-2 border-gray-800 pb-2 mb-3">
                     <div className="flex items-center gap-2 mb-1">
@@ -137,12 +137,18 @@ export const VoucherSlip = ({ voucher, student, copyType }) => {
 };
 
 const BulkPrintVouchers = React.forwardRef(({ vouchers }, ref) => {
-    const copyTypes = ['School Copy', 'Student Copy', 'Bank/Office Copy'];
+    // Group vouchers into chunks of 3
+    const chunks = vouchers.reduce((acc, curr, i) => {
+        const chunkIndex = Math.floor(i / 3);
+        if (!acc[chunkIndex]) acc[chunkIndex] = [];
+        acc[chunkIndex].push(curr);
+        return acc;
+    }, []);
 
     return (
         <div ref={ref} className="bulk-print-container">
-            {vouchers.map((voucher) => (
-                <div key={voucher.id} className="print-page" style={{
+            {chunks.map((chunk, index) => (
+                <div key={index} className="print-page" style={{
                     height: '210mm',
                     width: '297mm',
                     padding: '10mm',
@@ -153,12 +159,12 @@ const BulkPrintVouchers = React.forwardRef(({ vouchers }, ref) => {
                     gap: '10mm',
                     backgroundColor: 'white'
                 }}>
-                    {copyTypes.map((type, i) => (
+                    {chunk.map((voucher) => (
                         <VoucherSlip
-                            key={`${voucher.id}-${i}`}
+                            key={voucher.id}
                             voucher={voucher}
                             student={voucher.Student}
-                            copyType={type}
+                            copyType="Student Copy"
                         />
                     ))}
                 </div>
