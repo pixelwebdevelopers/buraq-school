@@ -652,9 +652,31 @@ exports.getBulkFees = async (req, res) => {
             order: [[Student, 'name', 'ASC']]
         });
 
+        // Enhance rows with previousBalance for each student
+        const enhancedFeeLogs = await Promise.all(feeLogs.map(async (log) => {
+            const l = log.toJSON();
+            
+            // Find all pending logs for THIS student that are OLDER than this voucher
+            const allPendingLogs = await FeeLog.findAll({
+                where: {
+                    studentId: l.studentId,
+                    status: { [Op.in]: ['PENDING', 'PARTIAL'] }
+                }
+            });
+
+            const prevBalance = allPendingLogs.filter(p => {
+                if (parseInt(p.year) < parseInt(l.year)) return true;
+                if (parseInt(p.year) === parseInt(l.year) && parseInt(p.month) < parseInt(l.month)) return true;
+                return false;
+            }).reduce((acc, p) => acc + (parseFloat(p.amount) - parseFloat(p.paidAmount || 0)), 0);
+
+            l.previousBalance = prevBalance;
+            return l;
+        }));
+
         res.status(200).json({
             success: true,
-            data: feeLogs,
+            data: enhancedFeeLogs,
             pagination: {
                 totalCount: count,
                 totalPages: Math.ceil(count / limit),
