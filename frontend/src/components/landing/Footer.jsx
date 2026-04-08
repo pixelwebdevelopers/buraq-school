@@ -60,7 +60,7 @@ export default function Footer() {
                         </div>
                         <p className="mt-4 text-sm leading-relaxed text-white/60">
                             The largest educational system with the lowest fee structure. Affiliated with the
-                            Federal Board. Producing excellent board results for over 12 years.
+                            Federal Board. Producing excellent board results for over 18 years.
                         </p>
                         {/* Social */}
                         <div className="mt-6 flex gap-3">

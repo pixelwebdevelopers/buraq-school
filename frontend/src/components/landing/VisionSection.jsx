@@ -5,7 +5,7 @@ const PILLARS = [
     {
         icon: FaGraduationCap,
         title: 'Academic Excellence',
-        description: 'Consistently producing Federal Board toppers with A+ grades across all classes.',
+        description: 'Consistently producing Federal Board toppers with A+ grades in 9th and 10th.',
     },
     {
         icon: FaBookOpen,
@@ -47,8 +47,8 @@ export default function VisionSection() {
                         At Buraq School & College, our vision is to be the leading educational institution that
                         transforms young minds into responsible, knowledgeable, and compassionate leaders. We
                         believe in making quality education accessible to all through the lowest fee structure
-                        while maintaining the highest academic standards. For over 12 years, we have been
-                        nurturing excellence and shaping the future of our nation, one student at a time.
+                        while maintaining the highest academic standards. For over 18 years, we have been
+                        nurturing excellence and shaping the future of our nation.
                     </p>
                 </div>
 

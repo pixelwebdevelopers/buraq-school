@@ -33,8 +33,7 @@ export default function PerformanceSection() {
                         Buraq School <span className="text-secondary">Performance</span>
                     </h2>
                     <p className="mt-4 text-base text-white/70 sm:text-lg">
-                        Our students consistently achieve top grades in Federal Board SSC Examinations. Here are
-                        our outstanding results from 2025.
+                        Our students consistently achieve top grades in Federal Board SSC Examinations.
                     </p>
                 </div>
 
@@ -51,7 +50,7 @@ export default function PerformanceSection() {
                             alt="Buraq School Board Results Table"
                             className="w-full max-h-[80vh] lg:max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
                         />
-                         <div className="absolute bottom-0 inset-x-0 glass-dark p-4 z-20">
+                        <div className="absolute bottom-0 inset-x-0 glass-dark p-4 z-20">
                             <p className="text-sm font-bold text-white">
                                 Detailed Board Performance
                             </p>
