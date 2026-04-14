@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import logo from '@/assets/images/logo.png';
 import Pagination from '@/components/common/Pagination';
+import PrintFooter from '@/components/common/PrintFooter';
 
 export default function PendingFeesReport() {
     const { user } = useAuth();
@@ -388,7 +389,7 @@ export default function PendingFeesReport() {
 
             {/* Hidden Print Content (A4 Portrait) */}
             <div className="hidden">
-                <div ref={printRef} className="p-12 text-black bg-white min-h-[297mm]" style={{ fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif" }}>
+                <div ref={printRef} className="p-12 text-black bg-white min-h-[297mm] relative" style={{ fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif" }}>
                     <div className="flex justify-between items-start border-b-[1.5pt] border-black pb-4 mb-6">
                         <div className="flex gap-5">
                             <img src={logo} alt="School Logo" className="h-20 w-auto object-contain" style={{ filter: 'grayscale(100%)' }} />
@@ -452,14 +453,9 @@ export default function PendingFeesReport() {
                         </div>
                     </div>
 
-
-                    <div className="absolute bottom-12 left-12 right-12 flex justify-between items-center text-[6.5pt] font-bold uppercase tracking-[0.2em] text-gray-300">
-                        <span>Print Date: {dayjs().format('YYYY-MM-DD HH:mm')}</span>
-                        <span>Buraq School ERP System</span>
-                        <span>Page 01 of 01</span>
+                        <PrintFooter />
                     </div>
                 </div>
             </div>
-        </div >
     );
 }

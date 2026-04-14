@@ -3,6 +3,7 @@ import { useReactToPrint } from 'react-to-print';
 import { FaPrint, FaTimes } from 'react-icons/fa';
 import branchService from '@/services/branchService';
 import IndividualVoucherSlip from '@/components/FeeVoucher/IndividualVoucherSlip';
+import PrintFooter from '@/components/common/PrintFooter';
 
 export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
     const componentRef = useRef();
@@ -114,7 +115,7 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                 <div className="flex-1 overflow-auto bg-gray-100/50 rounded-xl p-4 sm:p-8 flex items-start justify-center">
 
                     {/* The Printable Page Area */}
-                    <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
+                    <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full relative" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
                         <div className="flex flex-col md:flex-row gap-4 h-full w-full justify-between print:flex-row print:gap-4 print:h-full pb-8">
                             {copyTypes.map((type, i) => renderSlip(type, i))}
                         </div>
@@ -122,6 +123,7 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                         <div className="border-t border-dashed border-gray-300 mt-2 text-center text-[10px] text-gray-400 print:hidden py-1">
                             ✂-------------------------------------------------- Fold or Cut Here --------------------------------------------------✂
                         </div>
+                        <PrintFooter />
                     </div>
                 </div>
             </div>

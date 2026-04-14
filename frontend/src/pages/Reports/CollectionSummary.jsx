@@ -12,6 +12,7 @@ import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import logo from '@/assets/images/logo.png';
 import Pagination from '@/components/common/Pagination';
+import PrintFooter from '@/components/common/PrintFooter';
 
 export default function CollectionSummaryReport() {
     const { user } = useAuth();
@@ -286,7 +287,7 @@ export default function CollectionSummaryReport() {
 
             {/* Hidden Print Content */}
             <div className="hidden">
-                <div ref={printRef} className="p-12 text-black bg-white">
+                <div ref={printRef} className="p-12 text-black bg-white relative">
                     <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                         <div className="flex gap-4">
                             <img src={logo} alt="Logo" className="h-16 w-auto" />
@@ -326,6 +327,7 @@ export default function CollectionSummaryReport() {
                             </tr>
                         </tfoot>
                     </table>
+                    <PrintFooter />
                 </div>
             </div>
         </div>

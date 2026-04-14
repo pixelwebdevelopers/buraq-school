@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
+import PrintFooter from '@/components/common/PrintFooter';
 
-const PrintAdmissionForm = forwardRef(({ student, branchName }, ref) => {
+const PrintAdmissionForm = forwardRef(({ student }, ref) => {
     if (!student) return null;
 
     const createdAt = new Date(student.createdAt);
@@ -17,7 +18,7 @@ const PrintAdmissionForm = forwardRef(({ student, branchName }, ref) => {
     ).toFixed(2);
 
     return (
-        <div ref={ref} className="print-admission-form print:p-0 p-8 bg-white text-black font-serif text-[12px] leading-relaxed">
+        <div ref={ref} className="print-admission-form print:p-0 p-8 bg-white text-black font-serif text-[12px] leading-relaxed relative">
             <style>
                 {`
                 @media print {
@@ -330,6 +331,7 @@ const PrintAdmissionForm = forwardRef(({ student, branchName }, ref) => {
                     <span className="font-bold">Signature Principal</span>
                 </div>
             </div>
+            <PrintFooter />
         </div>
     );
 });

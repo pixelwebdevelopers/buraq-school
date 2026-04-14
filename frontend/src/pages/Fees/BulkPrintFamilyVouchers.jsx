@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import branchService from '@/services/branchService';
 import FamilyVoucherSlip from '@/components/FeeVoucher/FamilyVoucherSlip';
+import PrintFooter from '@/components/common/PrintFooter';
 
 const FamilyVoucherSlipInternal = ({ family, students, group, copyType, accounts = [], branchName = "" }) => {
     return (
@@ -56,7 +57,7 @@ const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
     return (
         <div ref={ref} className="bulk-print-container">
             {chunks.map((chunk, index) => (
-                <div key={index} className="print-page" style={{
+                <div key={index} className="print-page relative" style={{
                     height: '210mm',
                     width: '297mm',
                     padding: '8mm',
@@ -78,6 +79,7 @@ const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
                             branchName={branchNamesMap[item.family.branchId] || ""}
                         />
                     ))}
+                    <PrintFooter />
                 </div>
             ))}
         </div>

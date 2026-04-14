@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { FaPrint, FaTimes, FaSpinner } from 'react-icons/fa';
-import dayjs from 'dayjs';
+
 import familyService from '@/services/familyService';
 import branchService from '@/services/branchService';
 import FamilyVoucherSlip from '@/components/FeeVoucher/FamilyVoucherSlip';
+import PrintFooter from '@/components/common/PrintFooter';
 
 export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
     const componentRef = useRef();
@@ -157,13 +158,14 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                             <p className="font-semibold text-gray-500">Fetching sibling data...</p>
                         </div>
                     ) : (
-                        <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
+                        <div ref={componentRef} className="print-container bg-white p-6 shadow-sm w-full relative" style={{ width: '100%', maxWidth: '297mm', minHeight: '210mm' }}>
                             <div className="flex flex-col md:flex-row gap-4 h-full w-full justify-between print:flex-row print:gap-4 print:h-full pb-8">
                                 {copyTypes.map((type, i) => renderSlip(type, i))}
                             </div>
                             <div className="border-t border-dashed border-gray-300 mt-2 text-center text-[10px] text-gray-400 print:hidden py-1">
                                 ✂-------------------------------------------------- Fold or Cut Here --------------------------------------------------✂
                             </div>
+                            <PrintFooter />
                         </div>
                     )}
                 </div>

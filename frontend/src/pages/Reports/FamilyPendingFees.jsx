@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import dayjs from 'dayjs';
 import logo from '@/assets/images/logo.png';
 import Pagination from '@/components/common/Pagination';
+import PrintFooter from '@/components/common/PrintFooter';
 
 export default function FamilyPendingFeesReport() {
     const { user } = useAuth();
@@ -366,7 +367,7 @@ export default function FamilyPendingFeesReport() {
 
             {/* Print Layout */}
             <div className="hidden">
-                <div ref={printRef} className="p-10 text-black bg-white min-h-[297mm]">
+                <div ref={printRef} className="p-10 text-black bg-white min-h-[297mm] relative">
                     <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                         <div className="flex gap-4">
                             <img src={logo} alt="Logo" className="h-16 w-auto grayscale" />
@@ -428,6 +429,7 @@ export default function FamilyPendingFeesReport() {
                             <span className="text-lg font-black underline decoration-double">Rs. {totalOutstandingPrint.toLocaleString()}</span>
                         </div>
                     </div>
+                    <PrintFooter />
                 </div>
             </div>
         </div>
