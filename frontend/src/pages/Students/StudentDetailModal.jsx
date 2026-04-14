@@ -147,7 +147,7 @@ export default function StudentDetailModal({ isOpen, onClose, student, branchNam
                     </div>
 
                     {/* Print Footer Elements (Hidden on screen) */}
-                    <div className="hidden print:block mt-4 pt-2 break-inside-avoid">
+                    {/* <div className="hidden print:block mt-4 pt-2 break-inside-avoid">
                         <div className="flex justify-between items-end border-t border-gray-300 pt-8 px-6">
                             <div className="text-center w-40">
                                 <div className="border-b border-gray-800 mb-1.5 h-6"></div>
@@ -159,7 +159,7 @@ export default function StudentDetailModal({ isOpen, onClose, student, branchNam
                             </div>
                         </div>
                         <p className="text-center text-[9px] text-gray-400 mt-4 font-mono">System Generated Document - Buraq School Management Portal</p>
-                    </div>
+                    </div> */}
 
                 </div>
             </div>
