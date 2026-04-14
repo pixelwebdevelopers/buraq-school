@@ -310,28 +310,28 @@ const PrintAdmissionForm = forwardRef(({ student }, ref) => {
             {/* Fees Detail Section */}
             <div className="border border-black p-2 mb-10">
                 <div className="section-header mb-2">Fees Detail</div>
-                <div className="grid grid-cols-3 gap-y-3 px-4 py-2">
-                    <div className="flex items-end">
+                <div className="grid grid-cols-3 gap-y-3 px-4 py-2 gap-x-2">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Admission Fee Rs:</span>
                         <span className="field-line flex-1">{student.admissionFee}</span>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Annual Charges Rs:</span>
                         <span className="field-line flex-1">{student.annualCharges}</span>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Monthly Fee Rs:</span>
                         <span className="field-line flex-1">{student.monthlyFee}</span>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Academy Fee Rs:</span>
                         <span className="field-line flex-1">{student.academyFee}</span>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Lab/ Misc Rs:</span>
                         <span className="field-line flex-1">{student.labMiscFee}</span>
                     </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end gap-2">
                         <span className="font-bold mr-1">Total Amount Rs:</span>
                         <span className="field-line flex-1 font-bold">{totalFees}</span>
                     </div>
