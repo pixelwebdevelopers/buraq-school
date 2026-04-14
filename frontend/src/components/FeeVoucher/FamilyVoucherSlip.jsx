@@ -10,7 +10,7 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
     const totalAmount = parseFloat(group.totalAmount);
     const totalPaid = parseFloat(group.totalPaid || 0);
     const previousBalance = parseFloat(group.previousBalance || 0);
-    const currentTotal = totalAmount + previousBalance - totalPaid;
+    const currentTotal = totalAmount + previousBalance;
 
     // Create a map of student ID to voucher for easy lookup
     const studentVoucherMap = {};
@@ -182,7 +182,7 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                     <span className="font-bold">Balanced:</span>
                     <div className="flex border-b border-black w-28 justify-between px-1">
                         <span className="font-bold">Rs:</span>
-                        <span>{(currentTotal - totalPaid).toFixed(0)}</span>
+                        <span>{totalPaid > 0 ? (currentTotal - totalPaid).toFixed(0) : ''}</span>
                     </div>
                 </div>
                 <div className="flex justify-between pt-1">

@@ -13,7 +13,7 @@ export default function IndividualVoucherSlip({ voucher, student, family, copyTy
     const totalAmount = parseFloat(voucher.amount);
     const paidAmount = parseFloat(voucher.paidAmount || 0);
     const previousBalance = parseFloat(voucher.previousBalance || 0);
-    const currentTotal = totalAmount + previousBalance - paidAmount;
+    const currentTotal = totalAmount + previousBalance;
 
     return (
         <div className="slip bg-white relative flex flex-col" style={{
@@ -174,7 +174,7 @@ export default function IndividualVoucherSlip({ voucher, student, family, copyTy
                     <span className="font-bold">Balanced:</span>
                     <div className="flex border-b border-black w-32 justify-between px-1">
                         <span className="font-bold">Rs:</span>
-                        <span>{(currentTotal - paidAmount).toFixed(0)}</span>
+                        <span>{paidAmount > 0 ? (currentTotal - paidAmount).toFixed(0) : ''}</span>
                     </div>
                 </div>
                 <div className="flex justify-between pt-2">
