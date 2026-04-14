@@ -2,10 +2,39 @@ import { useState } from 'react';
 import useScrollReveal from '@/hooks/useScrollReveal';
 import resultsImage from '@/assets/images/results.jpeg';
 import result1Image from '@/assets/images/Result1.jpeg';
+import result2Image from '@/assets/images/Result2.jpeg';
+import result3Image from '@/assets/images/Result3.jpeg';
 
 export default function PerformanceSection() {
     const sectionRef = useScrollReveal();
     const [lightbox, setLightbox] = useState(null);
+
+    const performanceImages = [
+        {
+            src: result1Image,
+            alt: 'Buraq School Board Results Table',
+            title: 'Detailed Board Performance',
+            subtitle: 'Subject-wise Highest Marks & A+ Achievers'
+        },
+        {
+            src: resultsImage,
+            alt: 'Buraq School SSC Results 2025 — Federal Board Toppers',
+            title: 'Excellent Federal Board SSC Results 2025',
+            subtitle: '10th & 9th Class — All A+ Grades'
+        },
+        {
+            src: result2Image,
+            alt: 'Buraq School Academic Excellence',
+            title: 'Outstanding Achievement',
+            subtitle: 'Consistency in Higher Secondary Success'
+        },
+        {
+            src: result3Image,
+            alt: 'Buraq School Student Performance',
+            title: 'Merit List Holders',
+            subtitle: 'Celebrating our Top Performers'
+        }
+    ];
 
     return (
         <section id="performance" className="relative overflow-hidden bg-primary py-20 lg:py-28">
@@ -25,8 +54,8 @@ export default function PerformanceSection() {
 
             <div ref={sectionRef} className="reveal relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-10">
                 {/* Header */}
-                <div className="mx-auto max-w-3xl text-center text-white">
-                    <span className="inline-block rounded-full bg-secondary/20 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary-light">
+                <div className="mx-auto max-w-3xl text-center text-white mb-16">
+                    <span className="inline-block rounded-full bg-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-secondary">
                         Outstanding Results
                     </span>
                     <h2 className="mt-4 font-display text-3xl font-bold sm:text-4xl lg:text-5xl">
@@ -37,48 +66,32 @@ export default function PerformanceSection() {
                     </p>
                 </div>
 
-                {/* Results Content */}
-                <div className="mt-14 grid items-center gap-10 lg:grid-cols-2">
-                    {/* Results Table Image */}
-                    <div
-                        className="group relative cursor-pointer overflow-hidden rounded-3xl shadow-2xl"
-                        onClick={() => setLightbox({ src: result1Image, alt: 'Buraq School Board Results Table' })}
-                    >
-                        <div className="absolute inset-0 rounded-3xl border-2 border-white/10 z-10" />
-                        <img
-                            src={result1Image}
-                            alt="Buraq School Board Results Table"
-                            className="w-full max-h-[80vh] lg:max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute bottom-0 inset-x-0 glass-dark p-4 z-20">
-                            <p className="text-sm font-bold text-white">
-                                Detailed Board Performance
-                            </p>
-                            <p className="text-xs text-white/60">
-                                Subject-wise Highest Marks & A+ Achievers
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Results Image */}
-                    <div
-                        className="group relative cursor-pointer overflow-hidden rounded-3xl shadow-2xl"
-                        onClick={() => setLightbox({ src: resultsImage, alt: 'Buraq School SSC Results 2025 — Federal Board Toppers' })}
-                    >
-                        <div className="absolute inset-0 rounded-3xl border-2 border-white/10 z-10" />
-                        <img
-                            src={resultsImage}
-                            alt="Buraq School SSC Results 2025 — Federal Board Toppers"
-                            className="w-full max-h-[80vh] lg:max-h-[70vh] object-contain transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute bottom-0 inset-x-0 glass-dark p-4 z-20">
-                            <p className="text-sm font-bold text-white">
-                                Excellent Federal Board SSC Results 2025
-                            </p>
-                            <p className="text-xs text-white/60">
-                                10th & 9th Class — All A+ Grades
-                            </p>
-                        </div>
+                {/* Marquee Container */}
+                <div className="relative flex overflow-hidden">
+                    <div className="flex animate-marquee hover:[animation-play-state:paused] whitespace-nowrap py-4">
+                        {/* Duplicate the array to create a seamless loop */}
+                        {[...performanceImages, ...performanceImages].map((img, index) => (
+                            <div
+                                key={index}
+                                className="group relative mx-4 inline-block w-[220px] sm:w-[350px] lg:w-[400px] cursor-pointer overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:z-10 hover:scale-[1.02]"
+                                onClick={() => setLightbox({ src: img.src, alt: img.alt })}
+                            >
+                                <div className="absolute inset-0 rounded-3xl border-2 border-white/10 z-10" />
+                                <img
+                                    src={img.src}
+                                    alt={img.alt}
+                                    className="h-[350px] sm:h-[450px] lg:h-[550px] w-full object-contain bg-primary-dark/30 transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute bottom-0 inset-x-0 glass-dark p-6 z-20 text-wrap">
+                                    <p className="text-base font-bold text-white mb-1">
+                                        {img.title}
+                                    </p>
+                                    <p className="text-sm text-white/60">
+                                        {img.subtitle}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
