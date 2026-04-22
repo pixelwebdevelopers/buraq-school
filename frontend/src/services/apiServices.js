@@ -22,5 +22,10 @@ export const studentService = {
     updateStudent: async (id, studentData) => {
         const response = await api.put(`/students/${id}`, studentData);
         return response.data;
+    },
+    
+    deleteStudent: async (id) => {
+        const response = await api.delete(`/students/${id}`);
+        return response.data;
     }
 };

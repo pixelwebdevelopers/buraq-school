@@ -273,6 +273,37 @@ const studentController = {
         } catch (error) {
             next(error);
         }
+    },
+
+    // Delete student
+    deleteStudent: async (req, res, next) => {
+        try {
+            const studentId = req.params.id;
+            const student = await Student.findByPk(studentId);
+
+            if (!student) {
+                const err = new Error('Student not found');
+                err.statusCode = 404;
+                throw err;
+            }
+
+            // Ensure proper authorization if not admin
+            if (req.user.role !== 'ADMIN' && student.branchId !== req.user.branchId) {
+                const err = new Error('Unauthorized to delete this student');
+                err.statusCode = 403;
+                throw err;
+            }
+
+            await student.destroy();
+
+            res.status(200).json({
+                success: true,
+                message: 'Student deleted successfully'
+            });
+
+        } catch (error) {
+            next(error);
+        }
     }
 };
 

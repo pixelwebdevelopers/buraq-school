@@ -12,6 +12,7 @@ router.route('/')
     .post(studentController.admitStudent);
 
 router.route('/:id')
-    .put(studentController.updateStudent);
+    .put(studentController.updateStudent)
+    .delete(studentController.deleteStudent);
 
 module.exports = router;
