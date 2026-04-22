@@ -17,9 +17,17 @@ export function AuthProvider({ children }) {
             authService
                 .getProfile()
                 .then((res) => setUser(res.data.user))
-                .catch(() => {
-                    localStorage.removeItem('token');
-                    setUser(null);
+                .catch((err) => {
+                    // Only clear token if the server explicitly says it's invalid/expired (401)
+                    // Do NOT clear on network errors or server downtime
+                    if (err.response && err.response.status === 401) {
+                        console.warn('[AUTH] Token invalid or expired, clearing session.');
+                        localStorage.removeItem('token');
+                        setUser(null);
+                    } else {
+                        console.error('[AUTH] Failed to fetch profile during initialization:', err.message);
+                        // We keep the token and loading state might be handled by the component
+                    }
                 })
                 .finally(() => setLoading(false));
         } else {

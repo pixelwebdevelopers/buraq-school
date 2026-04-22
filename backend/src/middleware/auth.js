@@ -33,8 +33,11 @@ function protect(req, res, next) {
         next();
     } catch (err) {
         if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+            console.error(`[AUTH] Authentication failed: ${err.name} - ${err.message}`);
             err.statusCode = 401;
             err.message = 'Invalid or expired token.';
+        } else {
+            console.error(`[AUTH] Unexpected error during token verification:`, err);
         }
         next(err);
     }

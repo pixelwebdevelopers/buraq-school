@@ -43,14 +43,21 @@ api.interceptors.response.use(
             const { status } = error.response;
 
             if (status === 401) {
+                console.error('[API] Unauthorized (401): Your session has expired or is invalid. Redirecting to login.');
                 // Token expired or invalid — clear auth and redirect to login
                 localStorage.removeItem('token');
                 window.location.href = '/login';
+            } else if (status === 403) {
+                console.error('[API] Forbidden (403): You do not have permission to perform this action.');
+            } else if (status === 500) {
+                console.error('[API] Internal Server Error (500):', error.response.data);
+            } else {
+                console.error(`[API] Request failed with status ${status}:`, error.response.data);
             }
-
-            if (status === 500) {
-                console.error('[API] Internal server error:', error.response.data);
-            }
+        } else if (error.request) {
+            console.error('[API] Network Error: No response received from server. Please check your connection.');
+        } else {
+            console.error('[API] Request Error:', error.message);
         }
 
         return Promise.reject(error);
