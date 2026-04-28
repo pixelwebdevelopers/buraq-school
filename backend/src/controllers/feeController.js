@@ -168,6 +168,10 @@ exports.payVoucher = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Paid amount cannot exceed the total voucher amount.' });
         }
 
+        // Capture the previous paid amount BEFORE updating
+        const previousPaid = parseFloat(voucher.paidAmount || 0);
+        const incrementalPayment = newPaidAmount - previousPaid;
+
         let newStatus = 'PENDING';
         if (newPaidAmount === totalAmount) {
             newStatus = 'PAID';
@@ -180,15 +184,17 @@ exports.payVoucher = async (req, res) => {
             status: newStatus
         });
 
-        // Log the collection
-        await FeeCollectionLog.create({
-            familyId: voucher.familyId,
-            studentId: voucher.studentId,
-            feeLogId: voucher.id,
-            amountPaid: newPaidAmount - parseFloat(voucher.paidAmount || 0), // The incremental amount paid
-            receivedById: req.user.id,
-            branchId: voucher.Student?.branchId
-        });
+        // Log the collection with the correct incremental amount
+        if (incrementalPayment > 0) {
+            await FeeCollectionLog.create({
+                familyId: voucher.familyId,
+                studentId: voucher.studentId,
+                feeLogId: voucher.id,
+                amountPaid: incrementalPayment,
+                receivedById: req.user.id,
+                branchId: voucher.Student?.branchId
+            });
+        }
 
         res.status(200).json({
             success: true,
@@ -474,6 +480,29 @@ exports.collectBulkPayment = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid payment amount.' });
         }
 
+        // --- BRANCH SCOPING: Verify the target student/family belongs to this user's branch ---
+        if (req.user.role !== 'ADMIN') {
+            if (studentId) {
+                const targetStudent = await Student.findByPk(studentId);
+                if (!targetStudent) {
+                    return res.status(404).json({ success: false, message: 'Student not found.' });
+                }
+                if (targetStudent.branchId !== req.user.branchId) {
+                    return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
+                }
+            }
+            if (familyId) {
+                const targetFamily = await Family.findByPk(familyId);
+                if (!targetFamily) {
+                    return res.status(404).json({ success: false, message: 'Family not found.' });
+                }
+                if (targetFamily.branchId !== req.user.branchId) {
+                    return res.status(403).json({ success: false, message: 'Access denied: Family belongs to another branch.' });
+                }
+            }
+        }
+        // --------------------------------------------------------------------------------------
+
         const whereClause = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
         if (familyId) whereClause.familyId = familyId;
         if (studentId) whereClause.studentId = studentId;
@@ -515,14 +544,15 @@ exports.collectBulkPayment = async (req, res) => {
             
             await log.save();
 
-            // Log the collection
+            // Log the collection - resolve branchId reliably
+            const logBranchId = (await Student.findByPk(log.studentId, { attributes: ['branchId'] }))?.branchId;
             await FeeCollectionLog.create({
                 familyId: log.familyId,
                 studentId: log.studentId,
                 feeLogId: log.id,
                 amountPaid: paymentToApply,
                 receivedById: req.user.id,
-                branchId: log.Student?.branchId || (await Student.findByPk(log.studentId))?.branchId
+                branchId: logBranchId
             });
 
             updatedVouchers.push(log);
@@ -548,6 +578,29 @@ exports.applyBulkDiscount = async (req, res) => {
         if (isNaN(discountToApply) || discountToApply <= 0) {
             return res.status(400).json({ success: false, message: 'Invalid discount amount.' });
         }
+
+        // --- BRANCH SCOPING: Verify the target student/family belongs to this user's branch ---
+        if (req.user.role !== 'ADMIN') {
+            if (studentId) {
+                const targetStudent = await Student.findByPk(studentId);
+                if (!targetStudent) {
+                    return res.status(404).json({ success: false, message: 'Student not found.' });
+                }
+                if (targetStudent.branchId !== req.user.branchId) {
+                    return res.status(403).json({ success: false, message: 'Access denied: Student belongs to another branch.' });
+                }
+            }
+            if (familyId) {
+                const targetFamily = await Family.findByPk(familyId);
+                if (!targetFamily) {
+                    return res.status(404).json({ success: false, message: 'Family not found.' });
+                }
+                if (targetFamily.branchId !== req.user.branchId) {
+                    return res.status(403).json({ success: false, message: 'Access denied: Family belongs to another branch.' });
+                }
+            }
+        }
+        // --------------------------------------------------------------------------------------
 
         const whereClause = { status: { [Op.in]: ['PENDING', 'PARTIAL'] } };
         if (familyId) whereClause.familyId = familyId;
