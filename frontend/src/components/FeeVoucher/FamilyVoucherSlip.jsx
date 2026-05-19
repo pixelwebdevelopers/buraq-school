@@ -106,44 +106,79 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map(student => {
-                            const voucher = studentVoucherMap[student.id];
-                            if (!voucher) return null;
-                            return (
-                                <React.Fragment key={student.id}>
-                                    <tr className="bg-gray-100/50">
-                                        <td className="py-0.5 font-black uppercase truncate max-w-[120px]">{student.name}</td>
-                                        <td className="py-0.5 text-center font-bold uppercase">{student.currentClass}</td>
-                                        <td className="py-0.5 text-right font-black">Rs {parseFloat(voucher.amount).toFixed(0)}</td>
-                                    </tr>
-                                    {/* Detailed Breakdown */}
-                                    {parseFloat(voucher.monthlyFee) > 0 && (
-                                        <tr className="text-[8px] italic text-gray-600">
-                                            <td className="pl-4 py-0" colSpan="2"> - Monthly Fee</td>
-                                            <td className="text-right py-0">{parseFloat(voucher.monthlyFee).toFixed(0)}</td>
+                        {(() => {
+                            // 1. Build a list of billed students from vouchers if the Student relation is available
+                            const billedStudents = [];
+                            const seenStudentIds = new Set();
+                            
+                            group.vouchers.forEach(v => {
+                                if (v.Student && !seenStudentIds.has(v.studentId)) {
+                                    billedStudents.push({
+                                        id: v.studentId,
+                                        name: v.Student.name,
+                                        currentClass: v.Student.currentClass,
+                                        section: v.Student.section,
+                                        voucher: v
+                                    });
+                                    seenStudentIds.add(v.studentId);
+                                }
+                            });
+                            
+                            // 2. Fallback to the passed students list (e.g. for bulk printing where relation isn't pre-loaded)
+                            if (billedStudents.length === 0 && students) {
+                                students.forEach(student => {
+                                    const voucher = studentVoucherMap[student.id];
+                                    if (voucher && !seenStudentIds.has(student.id)) {
+                                        billedStudents.push({
+                                            id: student.id,
+                                            name: student.name,
+                                            currentClass: student.currentClass,
+                                            section: student.section,
+                                            voucher: voucher
+                                        });
+                                        seenStudentIds.add(student.id);
+                                    }
+                                });
+                            }
+                            
+                            return billedStudents.map(item => {
+                                const { voucher } = item;
+                                return (
+                                    <React.Fragment key={item.id}>
+                                        <tr className="bg-gray-100/50">
+                                            <td className="py-0.5 font-black uppercase truncate max-w-[120px]">{item.name}</td>
+                                            <td className="py-0.5 text-center font-bold uppercase">{item.currentClass}</td>
+                                            <td className="py-0.5 text-right font-black">Rs {parseFloat(voucher.amount).toFixed(0)}</td>
                                         </tr>
-                                    )}
-                                    {parseFloat(voucher.academyFee) > 0 && (
-                                        <tr className="text-[8px] italic text-gray-600">
-                                            <td className="pl-4 py-0" colSpan="2"> - Academy Fee</td>
-                                            <td className="text-right py-0">{parseFloat(voucher.academyFee).toFixed(0)}</td>
-                                        </tr>
-                                    )}
-                                    {parseFloat(voucher.labMiscFee) > 0 && (
-                                        <tr className="text-[8px] italic text-gray-600">
-                                            <td className="pl-4 py-0" colSpan="2"> - Lab/Misc Fee</td>
-                                            <td className="text-right py-0">{parseFloat(voucher.labMiscFee).toFixed(0)}</td>
-                                        </tr>
-                                    )}
-                                    {parseFloat(voucher.extraChargeAmount) > 0 && (
-                                        <tr className="text-[8px] italic text-gray-600 border-b border-gray-200">
-                                            <td className="pl-4 py-0" colSpan="2"> - {voucher.extraChargeName || 'Extra'}</td>
-                                            <td className="text-right py-0">{parseFloat(voucher.extraChargeAmount).toFixed(0)}</td>
-                                        </tr>
-                                    )}
-                                </React.Fragment>
-                            );
-                        })}
+                                        {/* Detailed Breakdown */}
+                                        {parseFloat(voucher.monthlyFee) > 0 && (
+                                            <tr className="text-[8px] italic text-gray-600">
+                                                <td className="pl-4 py-0" colSpan="2"> - Monthly Fee</td>
+                                                <td className="text-right py-0">{parseFloat(voucher.monthlyFee).toFixed(0)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.academyFee) > 0 && (
+                                            <tr className="text-[8px] italic text-gray-600">
+                                                <td className="pl-4 py-0" colSpan="2"> - Academy Fee</td>
+                                                <td className="text-right py-0">{parseFloat(voucher.academyFee).toFixed(0)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.labMiscFee) > 0 && (
+                                            <tr className="text-[8px] italic text-gray-600">
+                                                <td className="pl-4 py-0" colSpan="2"> - Lab/Misc Fee</td>
+                                                <td className="text-right py-0">{parseFloat(voucher.labMiscFee).toFixed(0)}</td>
+                                            </tr>
+                                        )}
+                                        {parseFloat(voucher.extraChargeAmount) > 0 && (
+                                            <tr className="text-[8px] italic text-gray-600 border-b border-gray-200">
+                                                <td className="pl-4 py-0" colSpan="2"> - {voucher.extraChargeName || 'Extra'}</td>
+                                                <td className="text-right py-0">{parseFloat(voucher.extraChargeAmount).toFixed(0)}</td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
+                                );
+                            });
+                        })()}
                     </tbody>
                 </table>
             </div>
