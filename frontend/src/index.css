@@ -256,6 +256,113 @@ body {
   transform: translateY(0);
 }
 
+/* ===== Print rules (used by Salary sheet & slip printouts) ===== */
+@page {
+  size: A4 portrait;
+  margin: 8mm;
+}
+@media print {
+  /* Print isolation: hide every element by default, reveal only the
+     designated print target (.print-area or .print-modal). This avoids
+     fighting the flex layout of DashboardLayout. */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-size: 9pt;
+    background: white !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .print-area,
+  .print-area *,
+  .print-modal,
+  .print-modal * {
+    visibility: visible !important;
+  }
+  /* Position the chosen print target at top-left, full width */
+  .print-area,
+  .print-modal {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    background-color: white !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+    display: block !important;
+  }
+  .print-modal-body {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0 !important;
+  }
+  /* Honor print:hidden on elements inside the print area */
+  .print\:hidden {
+    display: none !important;
+  }
+  /* Don't let inner containers clip the printable table */
+  .print-area,
+  .print-area * {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  /* Salary sheet table — compact portrait fit */
+  .salary-print-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 8pt !important;
+  }
+  .salary-print-table th,
+  .salary-print-table td {
+    padding: 3px 4px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+  }
+  .salary-print-table tbody tr {
+    height: 38px;
+  }
+  .salary-print-table th {
+    font-size: 7.5pt !important;
+    font-weight: 700 !important;
+  }
+  /* Keep multi-letter headers on a single line */
+  .salary-print-table thead th {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+  }
+  /* Column widths sized for A4 portrait (≈190mm usable) */
+  .salary-print-table col.c-num       { width: 4%; }
+  .salary-print-table col.c-name      { width: 14%; }
+  .salary-print-table col.c-prof      { width: 11%; }
+  .salary-print-table col.c-base      { width: 10%; }
+  .salary-print-table col.c-days      { width: 7%; }
+  .salary-print-table col.c-calc      { width: 10%; }
+  .salary-print-table col.c-allow     { width: 10%; }
+  .salary-print-table col.c-deduct    { width: 10%; }
+  .salary-print-table col.c-payable   { width: 10%; }
+  .salary-print-table col.c-sign      { width: 14%; }
+  .salary-print-table col.c-screen-only { width: 0 !important; }
+  /* Allow rows to break across pages cleanly */
+  .salary-print-table tr {
+    page-break-inside: avoid;
+  }
+  .salary-print-table thead {
+    display: table-header-group;
+  }
+}
+
 /* ===== Leaflet Custom Stylings ===== */
 .leaflet-container {
   font-family: var(--font-sans);

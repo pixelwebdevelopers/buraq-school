@@ -25,6 +25,9 @@ import FamilyPendingFeesReport from '@/pages/Reports/FamilyPendingFees';
 import CollectionSummaryReport from '@/pages/Reports/CollectionSummary';
 import Users from '@/pages/Users';
 import Settings from '@/pages/Settings';
+import Staff from '@/pages/Staff';
+import Salaries from '@/pages/Salaries';
+import RoleRoute from '@/components/common/RoleRoute';
 
 /**
  * Application route configuration.
@@ -65,6 +68,8 @@ const router = createBrowserRouter([
             { index: true, element: <Dashboard /> },
             { path: 'branches', element: <Branches /> },
             { path: 'students', element: <Students /> },
+            { path: 'staff', element: <RoleRoute allow={['ADMIN', 'PRINCIPAL']}><Staff /></RoleRoute> },
+            { path: 'salaries', element: <RoleRoute allow={['ADMIN', 'PRINCIPAL']}><Salaries /></RoleRoute> },
             { path: 'family-tree', element: <FamilyTree /> },
             { path: 'fees', element: <Fees /> },
             { path: 'users', element: <Users /> },

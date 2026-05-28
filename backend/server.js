@@ -19,7 +19,10 @@ async function startServer() {
             console.log(`🔗  http://localhost:${PORT}/api/health`);
         });
     } catch (error) {
-        console.error('❌  Failed to start server:', error.message);
+        console.error('❌  Failed to start server:', error.message || error.code || error.name || error);
+        if (error.errors) {
+            error.errors.forEach(e => console.error('   →', e.message || e.code, e.address || '', e.port || ''));
+        }
         process.exit(1);
     }
 }

@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import {
     FaHome, FaUserGraduate, FaMoneyBillWave, FaCog, FaAngleDoubleLeft, FaAngleDoubleRight,
-    FaMapMarkerAlt, FaGlobe, FaChartBar
+    FaMapMarkerAlt, FaGlobe, FaChartBar, FaUserTie, FaFileInvoiceDollar
 } from 'react-icons/fa';
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
@@ -18,6 +18,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     const allLinks = [
         { name: 'Dashboard', path: '/dashboard', icon: <FaHome />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
         { name: 'Students', path: '/dashboard/students', icon: <FaUserGraduate />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
+        { name: 'Staff', path: '/dashboard/staff', icon: <FaUserTie />, roles: ['ADMIN', 'PRINCIPAL'] },
+        { name: 'Salaries', path: '/dashboard/salaries', icon: <FaFileInvoiceDollar />, roles: ['ADMIN', 'PRINCIPAL'] },
         { name: 'Branches', path: '/dashboard/branches', icon: <FaMapMarkerAlt />, roles: ['ADMIN'] },
         { name: 'Family Tree', path: '/dashboard/family-tree', icon: <FaGlobe />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },
         { name: 'Fees', path: '/dashboard/fees', icon: <FaMoneyBillWave />, roles: ['ADMIN', 'PRINCIPAL', 'STAFF'] },

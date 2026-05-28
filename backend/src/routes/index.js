@@ -8,6 +8,9 @@ const studentRoutes = require('./studentRoutes');
 const familyRoutes = require('./familyRoutes');
 const feeRoutes = require('./feeRoutes');
 const userRoutes = require('./userRoutes');
+const staffRoutes = require('./staffRoutes');
+const salaryRoutes = require('./salaryRoutes');
+const analyticsRoutes = require('./analyticsRoutes');
 
 /**
  * API Route Index
@@ -29,5 +32,8 @@ router.use('/students', studentRoutes);
 router.use('/families', familyRoutes);
 router.use('/fees', feeRoutes);
 router.use('/users', userRoutes);
+router.use('/staff', staffRoutes);
+router.use('/salaries', salaryRoutes);
+router.use('/analytics', analyticsRoutes);
 
 module.exports = router;
