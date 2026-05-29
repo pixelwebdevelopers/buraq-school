@@ -145,6 +145,11 @@ export default function Salaries() {
 
     return (
         <div className="space-y-6">
+            {/* Page-scoped print rule: enforce A4 portrait for the salary sheet.
+                Lives in JSX so it's only present in the DOM while this page is mounted,
+                which keeps it out of react-to-print iframes (fee vouchers) entirely. */}
+            <style>{`@page { size: A4 portrait; margin: 8mm; }`}</style>
+
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-end gap-4 justify-between print:hidden">
                 <div>

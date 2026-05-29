@@ -268,10 +268,12 @@ body {
 }
 
 /* ===== Print rules (used by Salary sheet & slip printouts) ===== */
-@page {
-  size: A4 portrait;
-  margin: 8mm;
-}
+/* NOTE: page size/orientation is intentionally NOT set here, because
+   react-to-print (used by fee vouchers) copies these styles into its
+   iframe and a global @page rule would override the voucher's own
+   landscape pageStyle. Per-page @page rules live inside their own
+   component (e.g. Salaries page injects portrait, voucher injects
+   landscape). */
 @media print {
   /* Print isolation: hide every element by default, reveal only the
      designated print target (.print-area or .print-modal). This avoids
@@ -285,13 +287,27 @@ body {
   body * {
     visibility: hidden !important;
   }
+  /* Make the chosen print targets visible. The class list below covers
+     every react-to-print contentRef target in the app — leaving any of
+     them out makes that printout blank because of the `body *` rule above. */
   .print-area,
   .print-area *,
   .print-modal,
-  .print-modal * {
+  .print-modal *,
+  .print-container,
+  .print-container *,
+  .bulk-print-container,
+  .bulk-print-container *,
+  .print-admission-form,
+  .print-admission-form *,
+  #printable-student-detail,
+  #printable-student-detail * {
     visibility: visible !important;
   }
-  /* Position the chosen print target at top-left, full width */
+  /* Position the in-page print targets at top-left, full width.
+     We intentionally DO NOT reposition .print-container, because
+     react-to-print renders it in its own iframe and applies its own
+     pageStyle (landscape vouchers, etc.). */
   .print-area,
   .print-modal {
     position: absolute !important;

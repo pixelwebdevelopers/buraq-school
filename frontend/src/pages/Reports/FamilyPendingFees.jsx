@@ -367,7 +367,7 @@ export default function FamilyPendingFeesReport() {
 
             {/* Print Layout */}
             <div className="hidden">
-                <div ref={printRef} className="p-10 text-black bg-white min-h-[297mm] relative">
+                <div ref={printRef} className="print-container p-10 text-black bg-white min-h-[297mm] relative">
                     <div className="flex justify-between items-start border-b-2 border-black pb-4 mb-6">
                         <div className="flex gap-4">
                             <img src={logo} alt="Logo" className="h-16 w-auto grayscale" />

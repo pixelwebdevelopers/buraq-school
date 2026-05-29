@@ -389,7 +389,7 @@ export default function PendingFeesReport() {
 
             {/* Hidden Print Content (A4 Portrait) */}
             <div className="hidden">
-                <div ref={printRef} className="p-12 text-black bg-white min-h-[297mm] relative" style={{ fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif" }}>
+                <div ref={printRef} className="print-container p-12 text-black bg-white min-h-[297mm] relative" style={{ fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif" }}>
                     <div className="flex justify-between items-start border-b-[1.5pt] border-black pb-4 mb-6">
                         <div className="flex gap-5">
                             <img src={logo} alt="School Logo" className="h-20 w-auto object-contain" style={{ filter: 'grayscale(100%)' }} />
