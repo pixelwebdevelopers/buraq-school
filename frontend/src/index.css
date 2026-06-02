@@ -370,14 +370,15 @@ body {
     overflow-wrap: normal !important;
   }
   /* Column widths sized for A4 portrait (≈190mm usable) */
-  .salary-print-table col.c-num       { width: 4%; }
-  .salary-print-table col.c-name      { width: 14%; }
-  .salary-print-table col.c-prof      { width: 11%; }
-  .salary-print-table col.c-base      { width: 10%; }
+  .salary-print-table col.c-num       { width: 3%; }
+  .salary-print-table col.c-name      { width: 13%; }
+  .salary-print-table col.c-prof      { width: 10%; }
+  .salary-print-table col.c-base      { width: 9%; }
   .salary-print-table col.c-days      { width: 7%; }
-  .salary-print-table col.c-calc      { width: 10%; }
-  .salary-print-table col.c-allow     { width: 10%; }
-  .salary-print-table col.c-deduct    { width: 10%; }
+  .salary-print-table col.c-absent    { width: 7%; }
+  .salary-print-table col.c-calc      { width: 9%; }
+  .salary-print-table col.c-allow     { width: 9%; }
+  .salary-print-table col.c-deduct    { width: 9%; }
   .salary-print-table col.c-payable   { width: 10%; }
   .salary-print-table col.c-sign      { width: 14%; }
   .salary-print-table col.c-screen-only { width: 0 !important; }

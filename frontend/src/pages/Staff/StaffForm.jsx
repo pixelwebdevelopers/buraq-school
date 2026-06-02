@@ -5,9 +5,23 @@ import { useAuth } from '@/context/AuthContext';
 const PROFESSIONS = [
     'Principal', 'Vice Principal', 'Coordinator', 'Senior Teacher',
     'Teacher', 'Junior Teacher', 'Lab Assistant', 'Librarian',
-    'Accountant', 'Receptionist', 'Clerk', 'Driver', 'Guard',
-    'Janitor', 'Cook', 'Cleaner', 'IT Support', 'Other'
+    'Accountant', 'Receptionist', 'Clerk', 'Admin', 'Assistant',
+    'Driver', 'Guard', 'Peon', 'Sweeper', 'Janitor', 'Cook',
+    'Cleaner', 'IT Support', 'Other'
 ];
+
+// Safely convert any date-ish value to YYYY-MM-DD for <input type="date">.
+// Returns '' for null/undefined/'0000-00-00'/malformed strings so we never
+// call .toISOString() on an Invalid Date (which throws RangeError).
+function toDateInputValue(value) {
+    if (!value) return '';
+    // Sequelize DATEONLY already returns 'YYYY-MM-DD' — short-circuit that path.
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+        return value.slice(0, 10);
+    }
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+}
 
 export default function StaffForm({ isOpen, onClose, onSubmit, branches, isAdmin, initialData, saving }) {
     const { user } = useAuth();
@@ -21,9 +35,7 @@ export default function StaffForm({ isOpen, onClose, onSubmit, branches, isAdmin
         phone: initialData.phone || '',
         cnic: initialData.cnic || '',
         address: initialData.address || '',
-        joiningDate: initialData.joiningDate
-            ? new Date(initialData.joiningDate).toISOString().split('T')[0]
-            : '',
+        joiningDate: toDateInputValue(initialData.joiningDate),
         status: initialData.status || 'ACTIVE',
         branchId: initialData.branchId || (isAdmin ? '' : user?.branchId || '')
     } : {

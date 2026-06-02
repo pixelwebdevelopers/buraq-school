@@ -236,6 +236,7 @@ export default function Salaries() {
                                     <col className="c-prof" />
                                     <col className="c-base" />
                                     <col className="c-days" />
+                                    <col className="c-absent" />
                                     <col className="c-calc" />
                                     <col className="c-allow" />
                                     <col className="c-deduct" />
@@ -250,7 +251,8 @@ export default function Salaries() {
                                         <th className="px-4 py-3 print:border print:border-black">Name</th>
                                         <th className="px-4 py-3 print:border print:border-black">Profession</th>
                                         <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Salary / Mo.</span><span className="print:hidden">Base Salary</span></th>
-                                        <th className="px-4 py-3 print:border print:border-black">Days</th>
+                                        <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Existing</span><span className="print:hidden">Existing Days</span></th>
+                                        <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Absent</span><span className="print:hidden">Absent Days</span></th>
                                         <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Salary</span><span className="print:hidden">Calculated</span></th>
                                         <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Allowance</span><span className="print:hidden">Allowances</span></th>
                                         <th className="px-4 py-3 print:border print:border-black"><span className="hidden print:inline">Deduction</span><span className="print:hidden">Deductions</span></th>
@@ -262,25 +264,34 @@ export default function Salaries() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {loading ? (
-                                        <tr><td colSpan={11} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
+                                        <tr><td colSpan={13} className="px-4 py-8 text-center text-gray-500">Loading...</td></tr>
                                     ) : sheet.staff.length === 0 ? (
-                                        <tr><td colSpan={11} className="px-4 py-10 text-center text-gray-500">No staff members in this branch.</td></tr>
+                                        <tr><td colSpan={13} className="px-4 py-10 text-center text-gray-500">No staff members in this branch.</td></tr>
                                     ) : sheet.staff.map((s, idx) => {
                                         const slip = sheet.slipsByStaffId[s.id];
+                                        // Historical accuracy: when a slip exists, prefer its snapshot
+                                        // values over the staff's current data.
+                                        const displayName = slip?.nameSnapshot || s.name;
+                                        const displayProfession = slip?.professionSnapshot || s.profession;
+                                        const displayBase = slip?.baseSalary ?? s.baseSalary;
+                                        const displayMedicalLeaves = slip?.medicalLeavesSnapshot ?? s.medicalLeaves ?? 0;
                                         return (
                                             <tr key={s.id} className="hover:bg-gray-50/70 print:hover:bg-transparent">
                                                 <td className="px-4 py-3 text-gray-500 text-xs font-mono print:border print:border-black print:text-black">{idx + 1}</td>
                                                 <td className="px-4 py-3 print:border print:border-black">
-                                                    <div className="font-medium text-gray-800 print:text-black">{s.name}</div>
-                                                    <div className="text-[11px] text-rose-500 mt-0.5 print:hidden">Med. leaves: {s.medicalLeaves || 0}</div>
+                                                    <div className="font-medium text-gray-800 print:text-black">{displayName}</div>
+                                                    <div className="text-[11px] text-rose-500 mt-0.5 print:hidden">Med. leaves: {displayMedicalLeaves}</div>
                                                 </td>
-                                                <td className="px-4 py-3 text-gray-700 print:border print:border-black print:text-black">{s.profession}</td>
+                                                <td className="px-4 py-3 text-gray-700 print:border print:border-black print:text-black">{displayProfession}</td>
                                                 <td className="px-4 py-3 font-semibold text-gray-800 print:border print:border-black print:text-black">
-                                                    <span className="print:hidden">Rs {fmt(s.baseSalary)}</span>
-                                                    <span className="hidden print:inline">{fmt(s.baseSalary)}</span>
+                                                    <span className="print:hidden">Rs {fmt(displayBase)}</span>
+                                                    <span className="hidden print:inline">{fmt(displayBase)}</span>
                                                 </td>
                                                 <td className="px-4 py-3 text-gray-700 print:border print:border-black print:text-black">
                                                     {slip ? `${slip.existingDays}/${slip.monthDays}` : `—/${sheet.monthDays}`}
+                                                </td>
+                                                <td className="px-4 py-3 text-gray-700 print:border print:border-black print:text-black">
+                                                    {slip ? (slip.absentDays ?? 0) : '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-gray-800 print:border print:border-black print:text-black">
                                                     <span className="print:hidden">{slip ? `Rs ${fmt(slip.calculatedSalary)}` : '—'}</span>
@@ -331,7 +342,7 @@ export default function Salaries() {
                                 {sheet.staff.length > 0 && (
                                     <tfoot>
                                         <tr className="bg-gray-50 font-semibold text-gray-800 print:bg-gray-100 print:text-black">
-                                            <td colSpan={8} className="px-4 py-3 text-right print:border print:border-black">Total Payable for {monthLabel}</td>
+                                            <td colSpan={9} className="px-4 py-3 text-right print:border print:border-black">Total Payable for {monthLabel}</td>
                                             <td className="px-4 py-3 text-[#3A4A8B] print:text-black print:border print:border-black">Rs {fmt(totals.totalPayable)}</td>
                                             <td colSpan={2} className="print:hidden"></td>
                                             <td className="hidden print:table-cell print:border print:border-black"></td>

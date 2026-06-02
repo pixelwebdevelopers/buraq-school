@@ -7,24 +7,30 @@ function daysInMonth(month, year) {
     return new Date(year, month, 0).getDate();
 }
 
-function computeSalary({ baseSalary, monthDays, existingDays, allowances, deductions }) {
+// Mirror of server-side compute. Two inputs:
+//  - existingDays  → days worked, paid at per-day rate
+//  - absentDays    → days absent, deducted at per-day rate beyond a 1-day grace
+function computeSalary({ baseSalary, monthDays, existingDays, absentDays, allowances, deductions }) {
     const base = Number(baseSalary) || 0;
     const md = Math.max(1, parseInt(monthDays) || 30);
     const ed = Math.max(0, Math.min(md, parseInt(existingDays) || 0));
-    const absences = md - ed;
-    const billable = Math.max(0, absences - 1);
+    const ad = Math.max(0, parseInt(absentDays) || 0);
     const perDay = base / md;
-    const calculated = Math.max(0, base - perDay * billable);
+    const earned = perDay * ed;
+    const billable = Math.max(0, ad - 1);
+    const absentDeduction = perDay * billable;
+    const calculated = Math.max(0, earned - absentDeduction);
     const at = (allowances || []).reduce((s, a) => s + (Number(a.amount) || 0), 0);
     const dt = (deductions || []).reduce((s, d) => s + (Number(d.amount) || 0), 0);
     const payable = Math.max(0, calculated + at - dt);
-    return { calculated, at, dt, payable, billable, perDay };
+    return { calculated, at, dt, payable, billable, perDay, earned, absentDeduction };
 }
 
 export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, branchName, existingSlip, onSaved, saving }) {
     const md = useMemo(() => daysInMonth(month, year), [month, year]);
 
     const [existingDays, setExistingDays] = useState(existingSlip?.existingDays ?? md);
+    const [absentDays, setAbsentDays] = useState(existingSlip?.absentDays ?? 0);
     const [allowances, setAllowances] = useState(
         existingSlip?.allowances?.length ? existingSlip.allowances : [{ name: '', amount: '' }]
     );
@@ -37,18 +43,28 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
     useEffect(() => {
         // Reset when staff/month/year/existingSlip changes
         setExistingDays(existingSlip?.existingDays ?? md);
+        setAbsentDays(existingSlip?.absentDays ?? 0);
         setAllowances(existingSlip?.allowances?.length ? existingSlip.allowances : [{ name: '', amount: '' }]);
         setDeductions(existingSlip?.deductions?.length ? existingSlip.deductions : [{ name: '', amount: '' }]);
         setNotes(existingSlip?.notes || '');
     }, [existingSlip, md, staff?.id]);
 
+    // Frozen snapshots — if a slip already exists we show its historical
+    // values so that changing the staff's current base salary later does
+    // not retroactively change old slips.
+    const displayBase = existingSlip?.baseSalary ?? staff?.baseSalary ?? 0;
+    const displayName = existingSlip?.nameSnapshot || staff?.name;
+    const displayProfession = existingSlip?.professionSnapshot || staff?.profession;
+    const displayMedicalLeaves = existingSlip?.medicalLeavesSnapshot ?? staff?.medicalLeaves ?? 0;
+
     const calc = useMemo(() => computeSalary({
-        baseSalary: staff?.baseSalary || 0,
+        baseSalary: displayBase,
         monthDays: md,
         existingDays,
+        absentDays,
         allowances,
         deductions
-    }), [staff, md, existingDays, allowances, deductions]);
+    }), [displayBase, md, existingDays, absentDays, allowances, deductions]);
 
     if (!isOpen) return null;
 
@@ -77,6 +93,7 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
             month,
             year,
             existingDays: Number(existingDays) || 0,
+            absentDays: Number(absentDays) || 0,
             allowances: allowances.filter(a => a.name || a.amount),
             deductions: deductions.filter(d => d.name || d.amount),
             notes
@@ -104,8 +121,8 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
                             <FaFileInvoiceDollar className="text-lg" />
                         </div>
                         <div>
-                            <h2 className="font-bold text-lg leading-tight">Salary Slip — {staff?.name}</h2>
-                            <p className="text-xs text-white/70">{staff?.profession} • {monthLabel}</p>
+                            <h2 className="font-bold text-lg leading-tight">Salary Slip — {displayName}</h2>
+                            <p className="text-xs text-white/70">{displayProfession} • {monthLabel}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10">
@@ -116,18 +133,25 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
                 <div className="flex-1 overflow-y-auto p-6 print-modal-body">
                     {/* --- Editor View (hidden in print) --- */}
                     <div className="space-y-6 print:hidden">
-                        {/* Pre-filled info */}
+                        {/* Pre-filled info — uses the slip's frozen snapshot if it exists */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <ReadField label="Name" value={staff?.name} />
-                            <ReadField label="Profession" value={staff?.profession} />
-                            <ReadField label="Base Salary" value={`Rs ${Number(staff?.baseSalary || 0).toLocaleString('en-PK')}`} />
-                            <ReadField label="Medical Leaves" value={staff?.medicalLeaves || 0} />
+                            <ReadField label="Name" value={displayName} />
+                            <ReadField label="Profession" value={displayProfession} />
+                            <ReadField label="Base Salary" value={`Rs ${Number(displayBase).toLocaleString('en-PK')}`} />
+                            <ReadField label="Medical Leaves" value={displayMedicalLeaves} />
                         </div>
+                        {existingSlip && Number(staff?.baseSalary) !== Number(existingSlip.baseSalary) && (
+                            <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 text-xs">
+                                Showing the historical base salary recorded with this slip
+                                (Rs {Number(existingSlip.baseSalary).toLocaleString('en-PK')}).
+                                Staff's current base salary is Rs {Number(staff?.baseSalary).toLocaleString('en-PK')}.
+                            </div>
+                        )}
 
                         {/* Days + calc */}
                         <div className="bg-gray-50 border border-gray-100 rounded-xl p-5">
                             <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Attendance & Calculation</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <ReadField label="Month" value={monthLabel} />
                                 <ReadField label="Total Days" value={md} />
                                 <div>
@@ -140,7 +164,19 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
                                         onChange={(e) => setExistingDays(e.target.value)}
                                         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA]"
                                     />
-                                    <p className="text-[10px] text-gray-400 mt-1">1 leave allowed without deduction.</p>
+                                    <p className="text-[10px] text-gray-400 mt-1">Paid days</p>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Absent Days</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={md}
+                                        value={absentDays}
+                                        onChange={(e) => setAbsentDays(e.target.value)}
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#4B5EAA] focus:ring-1 focus:ring-[#4B5EAA]"
+                                    />
+                                    <p className="text-[10px] text-gray-400 mt-1">1 day grace; extras deducted</p>
                                 </div>
                                 <ReadField label="Salary (calculated)" highlight value={`Rs ${calc.calculated.toLocaleString('en-PK', { maximumFractionDigits: 0 })}`} />
                             </div>
@@ -194,17 +230,20 @@ export default function SalarySlipEditor({ isOpen, onClose, staff, month, year, 
                         </div>
                     </div>
 
-                    {/* --- Printable Slip --- */}
+                    {/* --- Printable Slip — uses frozen snapshot values --- */}
                     <PrintableSlip
-                        staff={staff}
+                        name={displayName}
+                        profession={displayProfession}
+                        baseSalary={displayBase}
+                        medicalLeaves={displayMedicalLeaves}
                         branchName={branchName}
                         monthLabel={monthLabel}
                         md={md}
                         existingDays={existingDays}
+                        absentDays={absentDays}
                         allowances={allowances}
                         deductions={deductions}
                         calc={calc}
-                        printingPreview={false}
                     />
                 </div>
 
@@ -311,8 +350,10 @@ function ItemList({ title, color, items, onChange, onAdd, onRemove, total, max }
     );
 }
 
-// Printable single-staff slip used by window.print()
-function PrintableSlip({ staff, branchName, monthLabel, md, existingDays, allowances, deductions, calc }) {
+// Printable single-staff slip used by window.print().
+// Receives the already-frozen display values so historical slips stay correct
+// even after the staff record changes.
+function PrintableSlip({ name, profession, baseSalary, medicalLeaves, branchName, monthLabel, md, existingDays, absentDays, allowances, deductions, calc }) {
     return (
         <div className="hidden print:block bg-white text-black p-8">
             <style>{`
@@ -332,21 +373,27 @@ function PrintableSlip({ staff, branchName, monthLabel, md, existingDays, allowa
                 <tbody>
                     <tr>
                         <td className="border border-black px-3 py-2 w-1/4 font-semibold bg-gray-100">Name</td>
-                        <td className="border border-black px-3 py-2">{staff?.name}</td>
+                        <td className="border border-black px-3 py-2">{name}</td>
                         <td className="border border-black px-3 py-2 w-1/4 font-semibold bg-gray-100">Profession</td>
-                        <td className="border border-black px-3 py-2">{staff?.profession}</td>
+                        <td className="border border-black px-3 py-2">{profession}</td>
                     </tr>
                     <tr>
                         <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Base Salary</td>
-                        <td className="border border-black px-3 py-2">Rs {Number(staff?.baseSalary || 0).toLocaleString('en-PK')}</td>
+                        <td className="border border-black px-3 py-2">Rs {Number(baseSalary || 0).toLocaleString('en-PK')}</td>
                         <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Medical Leaves</td>
-                        <td className="border border-black px-3 py-2">{staff?.medicalLeaves || 0}</td>
+                        <td className="border border-black px-3 py-2">{medicalLeaves || 0}</td>
                     </tr>
                     <tr>
                         <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Month Days</td>
                         <td className="border border-black px-3 py-2">{md}</td>
                         <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Existing Days</td>
                         <td className="border border-black px-3 py-2">{existingDays}</td>
+                    </tr>
+                    <tr>
+                        <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Absent Days</td>
+                        <td className="border border-black px-3 py-2">{absentDays || 0}</td>
+                        <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Per-day Rate</td>
+                        <td className="border border-black px-3 py-2">Rs {Number(calc.perDay || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 })}</td>
                     </tr>
                     <tr>
                         <td className="border border-black px-3 py-2 font-semibold bg-gray-100">Calculated Salary</td>

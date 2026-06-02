@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         year: { type: DataTypes.INTEGER, allowNull: false },
         monthDays: { type: DataTypes.INTEGER, allowNull: false }, // total days in month
         existingDays: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+        absentDays: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
         baseSalary: { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0 },
         calculatedSalary: { type: DataTypes.DECIMAL(12, 2), allowNull: false, defaultValue: 0 },
         // allowances/deductions stored as JSON arrays of { name, amount } items (max 5 each)

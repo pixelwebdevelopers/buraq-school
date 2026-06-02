@@ -23,15 +23,21 @@ function sanitizeItems(items) {
         }));
 }
 
-function computeSalary({ baseSalary, monthDays, existingDays, allowances, deductions }) {
+// Two-input model (existing + absent days):
+// 1) Earned salary is computed from `existingDays` × per-day rate.
+// 2) If `absentDays` > 1, the extra absences (absentDays - 1) are deducted
+//    at the per-day rate (1 day of absence is always free).
+function computeSalary({ baseSalary, monthDays, existingDays, absentDays, allowances, deductions }) {
     const base = Number(baseSalary) || 0;
     const md = Math.max(1, parseInt(monthDays) || 30);
     const ed = Math.max(0, Math.min(md, parseInt(existingDays) || 0));
-    const absences = md - ed;
-    // 1 leave allowed without deduction
-    const billableAbsences = Math.max(0, absences - 1);
+    const ad = Math.max(0, parseInt(absentDays) || 0);
     const perDay = base / md;
-    const calculatedSalary = Math.max(0, base - perDay * billableAbsences);
+
+    const earned = perDay * ed;
+    const billableAbsences = Math.max(0, ad - 1);
+    const absentDeduction = perDay * billableAbsences;
+    const calculatedSalary = Math.max(0, earned - absentDeduction);
 
     const allowanceTotal = (allowances || []).reduce((s, a) => s + (Number(a.amount) || 0), 0);
     const deductionTotal = (deductions || []).reduce((s, d) => s + (Number(d.amount) || 0), 0);
@@ -119,7 +125,7 @@ const salaryController = {
         const t = await sequelize.transaction();
         try {
             const {
-                staffId, month, year, existingDays,
+                staffId, month, year, existingDays, absentDays,
                 allowances, deductions, notes
             } = req.body;
 
@@ -144,17 +150,28 @@ const salaryController = {
             const md = daysInMonth(month, year);
             const cleanAllowances = sanitizeItems(allowances);
             const cleanDeductions = sanitizeItems(deductions);
-            const computed = computeSalary({
-                baseSalary: staff.baseSalary,
-                monthDays: md,
-                existingDays,
-                allowances: cleanAllowances,
-                deductions: cleanDeductions
-            });
 
             const existing = await SalarySlip.findOne({
                 where: { staffId, month, year },
                 transaction: t
+            });
+
+            // Historical accuracy: once a slip exists, its baseSalary/profession/
+            // medicalLeaves/name are frozen. Editing the slip later does NOT
+            // pick up the staff's current values. Only fresh slips snapshot
+            // the current staff record.
+            const effectiveBase = existing ? existing.baseSalary : staff.baseSalary;
+            const effectiveProfession = existing ? existing.professionSnapshot : staff.profession;
+            const effectiveMedicalLeaves = existing ? existing.medicalLeavesSnapshot : staff.medicalLeaves;
+            const effectiveName = existing ? existing.nameSnapshot : staff.name;
+
+            const computed = computeSalary({
+                baseSalary: effectiveBase,
+                monthDays: md,
+                existingDays,
+                absentDays,
+                allowances: cleanAllowances,
+                deductions: cleanDeductions
             });
 
             const payload = {
@@ -164,16 +181,17 @@ const salaryController = {
                 year,
                 monthDays: md,
                 existingDays: Math.max(0, Math.min(md, parseInt(existingDays) || 0)),
-                baseSalary: staff.baseSalary,
+                absentDays: Math.max(0, parseInt(absentDays) || 0),
+                baseSalary: effectiveBase,
                 calculatedSalary: computed.calculatedSalary,
                 allowances: JSON.stringify(cleanAllowances),
                 deductions: JSON.stringify(cleanDeductions),
                 allowanceTotal: computed.allowanceTotal,
                 deductionTotal: computed.deductionTotal,
                 payableSalary: computed.payableSalary,
-                medicalLeavesSnapshot: staff.medicalLeaves,
-                professionSnapshot: staff.profession,
-                nameSnapshot: staff.name,
+                medicalLeavesSnapshot: effectiveMedicalLeaves,
+                professionSnapshot: effectiveProfession,
+                nameSnapshot: effectiveName,
                 notes: notes || null,
                 createdById: req.user.id
             };
