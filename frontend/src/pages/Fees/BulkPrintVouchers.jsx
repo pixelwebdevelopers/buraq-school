@@ -62,12 +62,12 @@ const BulkPrintVouchers = React.forwardRef(({ vouchers }, ref) => {
                 <div key={index} className="print-page relative" style={{
                     height: '210mm',
                     width: '297mm',
-                    padding: '10mm',
+                    padding: '6mm',
                     boxSizing: 'border-box',
                     pageBreakAfter: 'always',
                     display: 'flex',
                     flexDirection: 'row',
-                    gap: '10mm',
+                    gap: '4.5mm',
                     backgroundColor: 'white'
                 }}>
                     {chunk.map((voucher) => (

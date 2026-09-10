@@ -62,11 +62,11 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                 .print-container {
                     width: 297mm;
                     height: 210mm;
-                    padding: 8mm !important;
+                    padding: 6mm !important;
                     box-sizing: border-box;
                     display: flex !important;
                     flex-direction: row !important;
-                    gap: 5mm !important;
+                    gap: 4.5mm !important;
                     overflow: hidden !important;
                     background: white !important;
                 }
@@ -74,8 +74,8 @@ export default function PrintFamilyVoucher({ isOpen, onClose, group, family }) {
                     width: 92mm !important;
                     flex: none !important;
                     height: 100%;
-                    border: 1px solid #000 !important;
-                    padding: 5mm !important;
+                    border: 1.5px solid #000 !important;
+                    padding: 4mm !important;
                     box-sizing: border-box;
                     page-break-inside: avoid;
                     display: flex !important;

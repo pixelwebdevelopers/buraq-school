@@ -60,12 +60,12 @@ const BulkPrintFamilyVouchers = React.forwardRef(({ familyGroups }, ref) => {
                 <div key={index} className="print-page relative" style={{
                     height: '210mm',
                     width: '297mm',
-                    padding: '8mm',
+                    padding: '6mm',
                     boxSizing: 'border-box',
                     pageBreakAfter: 'always',
                     display: 'flex',
                     flexDirection: 'row',
-                    gap: '5mm',
+                    gap: '4.5mm',
                     backgroundColor: 'white'
                 }}>
                     {chunk.map((item, i) => (

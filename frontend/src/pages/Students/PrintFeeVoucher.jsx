@@ -47,21 +47,24 @@ export default function PrintFeeVoucher({ isOpen, onClose, voucher, student }) {
                 .print-container {
                     width: 297mm;
                     height: 210mm;
-                    padding: 10mm !important;
+                    padding: 6mm !important;
                     box-sizing: border-box;
                     display: flex !important;
                     flex-direction: row !important;
-                    gap: 10mm !important;
+                    gap: 4.5mm !important;
                     background: white !important;
                 }
                  .slip {
                     width: 92mm !important;
                     flex: none !important;
                     height: 100%;
-                    border: 1px solid #000 !important;
-                    padding: 8mm !important;
+                    border: 1.5px solid #000 !important;
+                    padding: 4mm !important;
                     box-sizing: border-box;
                     page-break-inside: avoid;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: space-between !important;
                 }
             }
         `
