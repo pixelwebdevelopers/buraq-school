@@ -169,10 +169,12 @@ export default function IndividualVoucherSlip({ voucher, student, family, copyTy
                         <span className="font-bold">{paidAmount > 0 ? (currentTotal - paidAmount).toFixed(0) : ''}</span>
                     </div>
                 </div>
-                <div className="flex justify-between items-center pt-1.5">
-                    <span className="font-bold">Received By:</span>
-                    <div className="border-b border-black w-32"></div>
-                </div>
+            </div>
+
+            {/* Received By Pinned to Bottom */}
+            <div className="flex justify-between items-center  mt-5 pt-5 text-sm">
+                <span className="font-bold">Received By:</span>
+                <div className="border-b border-black w-32 mt-1"></div>
             </div>
         </div>
     );

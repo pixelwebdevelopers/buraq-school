@@ -101,7 +101,7 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                                 // 1. Build a list of billed students from vouchers if the Student relation is available
                                 const billedStudents = [];
                                 const seenStudentIds = new Set();
-                                
+
                                 group.vouchers.forEach(v => {
                                     if (v.Student && !seenStudentIds.has(v.studentId)) {
                                         billedStudents.push({
@@ -114,7 +114,7 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                                         seenStudentIds.add(v.studentId);
                                     }
                                 });
-                                
+
                                 // 2. Fallback to the passed students list (e.g. for bulk printing where relation isn't pre-loaded)
                                 if (billedStudents.length === 0 && students) {
                                     students.forEach(student => {
@@ -131,42 +131,15 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                                         }
                                     });
                                 }
-                                
+
                                 return billedStudents.map(item => {
                                     const { voucher } = item;
                                     return (
-                                        <React.Fragment key={item.id}>
-                                            <tr className="bg-gray-100/80 border-t border-gray-400">
-                                                <td className="py-1 font-black uppercase text-sm truncate max-w-[120px]">{item.name}</td>
-                                                <td className="py-1 text-center font-bold uppercase text-sm">{item.currentClass}</td>
-                                                <td className="py-1 text-right font-black text-sm">Rs {parseFloat(voucher.amount).toFixed(0)}</td>
-                                            </tr>
-                                            {/* Detailed Breakdown */}
-                                            {parseFloat(voucher.monthlyFee) > 0 && (
-                                                <tr className="text-[13px] font-bold text-black">
-                                                    <td className="pl-4 py-0.5" colSpan="2"> - Monthly Fee</td>
-                                                    <td className="text-right py-0.5 font-black">{parseFloat(voucher.monthlyFee).toFixed(0)}</td>
-                                                </tr>
-                                            )}
-                                            {parseFloat(voucher.academyFee) > 0 && (
-                                                <tr className="text-[13px] font-bold text-black">
-                                                    <td className="pl-4 py-0.5" colSpan="2"> - Academy Fee</td>
-                                                    <td className="text-right py-0.5 font-black">{parseFloat(voucher.academyFee).toFixed(0)}</td>
-                                                </tr>
-                                            )}
-                                            {parseFloat(voucher.labMiscFee) > 0 && (
-                                                <tr className="text-[13px] font-bold text-black">
-                                                    <td className="pl-4 py-0.5" colSpan="2"> - Lab/Misc Fee</td>
-                                                    <td className="text-right py-0.5 font-black">{parseFloat(voucher.labMiscFee).toFixed(0)}</td>
-                                                </tr>
-                                            )}
-                                            {parseFloat(voucher.extraChargeAmount) > 0 && (
-                                                <tr className="text-[13px] font-bold text-black border-b border-gray-300">
-                                                    <td className="pl-4 py-0.5" colSpan="2"> - {voucher.extraChargeName || 'Extra'}</td>
-                                                    <td className="text-right py-0.5 font-black">{parseFloat(voucher.extraChargeAmount).toFixed(0)}</td>
-                                                </tr>
-                                            )}
-                                        </React.Fragment>
+                                        <tr key={item.id} className="border-t border-gray-300">
+                                            <td className="py-1 font-semibold uppercase text-xs truncate max-w-[120px]">{item.name}</td>
+                                            <td className="py-1 text-center font-semibold uppercase text-xs">{item.currentClass}</td>
+                                            <td className="py-1 text-right font-black text-sm">Rs {parseFloat(voucher.amount).toFixed(0)}</td>
+                                        </tr>
                                     );
                                 });
                             })()}
@@ -212,10 +185,12 @@ export default function FamilyVoucherSlip({ group, family, students, accounts = 
                         <span className="font-bold">{totalPaid > 0 ? (currentTotal - totalPaid).toFixed(0) : ''}</span>
                     </div>
                 </div>
-                <div className="flex justify-between items-center pt-1.5">
-                    <span className="font-bold">Received By:</span>
-                    <div className="border-b border-black w-32"></div>
-                </div>
+            </div>
+
+            {/* Received By Pinned to Bottom */}
+            <div className="flex justify-between items-center  mt-5 pt-5 text-sm">
+                <span className="font-bold">Received By:</span>
+                <div className="border-b border-black w-32 mt-1"></div>
             </div>
         </div>
     );
